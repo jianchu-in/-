@@ -4,20 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>♡末の音乐♡播放器</title>
-    <!-- 引入 Dexie.js 和 Cropper.js -->
+    <!-- Dexie.js for Database -->
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+    <!-- Cropper.js for Image Cropping -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
     <style>
-        :root {
-            --bg-primary: #121212; --bg-secondary: #191919; --bg-tertiary: #282828; --bg-app: rgba(40, 40, 40, 0.7);
-            --text-primary: #ffffff; --text-secondary: #b3b3b3; --border-color: #444;
-            --global-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --lyric-color: #ffffff;
-        }
-        body.light-mode {
-            --bg-primary: #f0f2f5; --bg-secondary: #ffffff; --bg-tertiary: #e9e9e9; --bg-app: rgba(255, 255, 255, 0.6);
-            --text-primary: #000000; --text-secondary: #555555; --border-color: #dcdcdc;
-        }
+        :root { /* Night Mode */ --bg-primary: #121212; --bg-secondary: #191919; --bg-tertiary: #282828; --bg-app: rgba(40, 40, 40, 0.7); --text-primary: #ffffff; --text-secondary: #b3b3b3; --border-color: #444; --global-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --lyric-color: #ffffff; }
+        body.light-mode { /* Day Mode */ --bg-primary: #f0f2f5; --bg-secondary: #ffffff; --bg-tertiary: #e9e9e9; --bg-app: rgba(255, 255, 255, 0.6); --text-primary: #000000; --text-secondary: #555555; --border-color: #dcdcdc; }
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: var(--global-font); color: var(--text-primary); background-color: var(--bg-primary); transition: background-color 0.3s, color 0.3s; }
         .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; transition: opacity 0.4s ease, transform 0.4s ease; opacity: 0; transform: scale(1.05); pointer-events: none; background-color: var(--bg-primary); }
         .view.active { opacity: 1; transform: scale(1); pointer-events: auto; }
@@ -37,176 +31,213 @@
         #display-picture-container { width: 130px; height: 130px; background-color: var(--bg-app); border-radius: 20px; cursor: pointer; background-size: cover; background-position: center; transition: transform 0.3s; }
         .app-page { background-color: var(--bg-secondary); display: flex; flex-direction: column; }
         .app-header { padding: 15px; background-color: var(--bg-tertiary); display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10;}
-        .app-header .back-btn, .app-header h1 { color: var(--text-primary); }
-        .app-header .back-btn { font-size: 24px; background: none; border: none; margin-right: 15px; }
-        .app-header h1 { font-size: 20px; margin: 0; }
+        .app-header .back-btn, .app-header h1 { color: var(--text-primary); } .app-header .back-btn { font-size: 24px; background: none; border: none; margin-right: 15px; } .app-header h1 { font-size: 20px; margin: 0; }
         .app-content { padding: 20px; overflow-y: auto; flex-grow: 1; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; color: var(--text-secondary); }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; box-sizing: border-box; }
+        .form-group { margin-bottom: 20px; } .form-group label { display: block; margin-bottom: 8px; color: var(--text-secondary); } .form-group input, .form-group textarea { width: 100%; padding: 12px; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; box-sizing: border-box; }
         .action-button { width: 100%; padding: 15px; background-color: #1DB954; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; }
         #playlist-container { list-style: none; padding: 0; margin: 0; }
-        .playlist-item { display: flex; align-items: center; padding: 10px; border-radius: 8px; transition: background-color 0.2s; }
-        .playlist-item:hover { background-color: var(--bg-tertiary); }
+        .playlist-item { display: flex; align-items: center; padding: 10px; border-radius: 8px; transition: background-color 0.2s; } .playlist-item:hover { background-color: var(--bg-tertiary); }
         .playlist-item img { width: 50px; height: 50px; border-radius: 4px; margin-right: 15px; object-fit: cover; background-color: #333; }
-        .playlist-item .song-info { flex-grow: 1; cursor: pointer; }
-        .playlist-item .actions { display: flex; }
-        .edit-song-btn, .delete-song-btn { background: none; border: none; font-size: 20px; padding: 10px; }
-        .edit-song-btn { color: #4dabf7; } .delete-song-btn { color: #ff4d4d; }
+        .playlist-item .song-info { flex-grow: 1; cursor: pointer; } .playlist-item .actions { display: flex; } .playlist-item .actions button { background: none; border: none; font-size: 20px; padding: 10px; color: var(--text-secondary); }
         #player-view { background-color: #000; background-size: cover; background-position: center; display: flex; flex-direction: column; padding: 20px; }
+        .player-top-bar button { color: white; text-shadow: 0 0 5px black;}
         #album-art { object-fit: cover; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
-        /* --- 裁剪器 Modal 样式 --- */
-        #cropper-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(5px); }
-        .cropper-container { background: var(--bg-secondary); padding: 20px; border-radius: 12px; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; }
-        #cropper-image-container { width: 100%; height: 100%; overflow: hidden; flex-grow: 1; }
-        #cropper-image { display: block; max-width: 100%; }
-        .cropper-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
-        .cropper-actions button { padding: 10px 20px; border-radius: 8px; border: none; }
-        #crop-confirm-btn { background-color: #1DB954; color: white; }
-        #crop-cancel-btn { background-color: var(--bg-tertiary); color: var(--text-primary); }
+        .lyric-bubble { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px 20px; margin-bottom: 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .lyric-bubble p { color: var(--lyric-color); /* Critical for color change */ }
+        #color-picker { display: none; position: absolute; top: 60px; right: 20px; background-color: #282828; padding: 10px; border-radius: 8px; grid-template-columns: repeat(4, 1fr); gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 20;}
+        #color-picker.visible { display: grid; } /* Use class for visibility */
+        .color-swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; } .color-swatch:hover { border-color: white; }
+        .beautify-section { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--bg-secondary); padding: 25px; border-radius: 12px; max-width: 90%; width: 350px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); } .modal-content button { float: right; }
+        #crop-modal-content { width: 90vw; max-width: 500px; padding: 10px; } #cropper-container { width: 100%; height: 60vh; max-height: 400px; } #cropper-image { display: block; max-width: 100%; } .cropper-buttons { text-align: right; margin-top: 10px; }
+        .image-preview { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; margin-left: 10px; }
+        .switch { position:relative;display:inline-block;width:60px;height:34px} .switch input{opacity:0;width:0;height:0} .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:34px} .slider:before{position:absolute;content:"";height:26px;width:26px;left:4px;bottom:4px;background-color:white;transition:.4s;border-radius:50%} input:checked+.slider{background-color:#2196F3} input:checked+.slider:before{transform:translateX(26px)}
     </style>
 </head>
 <body>
-    <!-- 桌面和App视图 -->
-    <div id="desktop-view" class="view active"><div class="desktop-header"><div id="desktop-time">12:00</div><div id="desktop-date">1月1日 星期一</div></div><div class="desktop-top-right"><button id="announcement-btn">📢</button></div><div class="desktop-main"><div class="app-dock" id="app-dock"></div><div id="display-picture-container"></div></div></div>
-    <div id="settings-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="settings-view-title">播放设置</h1></div><div class="app-content"><div class="form-group"><label>歌曲标题</label><input type="text" id="song-title-input"></div><div class="form-group"><label>字幕/歌词</label><textarea id="lyric-input" rows="5" placeholder="格式:&#10;00:00:01.000 --> 00:00:04.000&#10;这是第一句歌词..."></textarea></div><div class="form-group"><label>音频文件 (不选则不更改)</label><input type="file" id="audio-file-input" accept="audio/*"></div><div class="form-group"><label>封面图片</label><button id="cover-image-btn" class="action-button" style="background-color:#555;">选择并裁剪图片</button><img id="cover-preview" style="max-width:100px;border-radius:8px;margin-top:10px;display:none;"></div><button id="save-preset-btn" class="action-button">保存预设</button></div></div>
+    <div id="desktop-view" class="view active"><div class="desktop-header"><div id="desktop-time">12:00</div><div id="desktop-date">1月1日</div></div><div class="desktop-top-right"><button id="announcement-btn">📢</button></div><div class="desktop-main"><div class="app-dock" id="app-dock"></div><div id="display-picture-container"></div></div></div>
+    <div id="settings-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="settings-view-title">播放设置</h1></div><div class="app-content"><div class="form-group"><label>歌曲标题</label><input type="text" id="song-title-input"></div><div class="form-group"><label>字幕/歌词</label><textarea id="lyric-input" rows="5" placeholder="格式:&#10;00:00:01.000 --> 00:00:04.000&#10;这是第一句歌词..."></textarea></div><div class="form-group"><label>音频文件</label><input type="file" id="audio-file-input" accept="audio/*"></div><div class="form-group"><label>封面图片 (可选)</label><div style="display:flex;align-items:center"><input type="file" id="image-file-input" accept="image/*" style="flex-grow:1"><img id="add-image-preview" class="image-preview" style="display:none"></div></div><button id="save-preset-btn" class="action-button">保存预设</button></div></div>
+    <div id="edit-song-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="playlist-view">‹</button><h1 id="edit-view-title">编辑歌曲</h1></div><div class="app-content"><form id="edit-song-form"><div class="form-group"><label>歌曲标题</label><input type="text" id="edit-song-title-input"></div><div class="form-group"><label>字幕/歌词</label><textarea id="edit-lyric-input" rows="5"></textarea></div><div class="form-group"><label>更换音频文件 (可选)</label><input type="file" id="edit-audio-file-input" accept="audio/*"></div><div class="form-group"><label>更换封面图片 (可选)</label><div style="display:flex;align-items:center"><input type="file" id="edit-image-file-input" accept="image/*" style="flex-grow:1"><img id="edit-image-preview" class="image-preview"></div></div><button id="update-song-btn" class="action-button" type="submit">保存更改</button></form></div></div>
     <div id="playlist-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="playlist-view-title">播放列表</h1></div><div class="app-content"><ul id="playlist-container"></ul></div></div>
-    <div id="beautify-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="beautify-view-title">美化</h1></div><div class="app-content"><div class="beautify-section"><h2>主题模式</h2><div style="display:flex;align-items:center;gap:10px;"><span>夜间</span><label class="switch"><input type="checkbox" id="theme-switch"><span class="slider"></span></label><span>日间</span></div></div><div class="beautify-section"><h2>应用定制</h2><div id="app-customize-container"></div></div><div class="beautify-section"><h2>播放器界面</h2><div class="form-group"><label>播放器背景</label><input type="file" id="player-bg-input" accept="image/*"></div><div class="form-group"><label>封面尺寸 (px)</label><div style="display:flex;gap:10px;"><input type="number" id="cover-width-input" placeholder="宽度"><input type="number" id="cover-height-input" placeholder="高度"></div></div></div><div class="beautify-section"><h2>桌面与字体</h2><div class="form-group"><label>全局背景</label><input type="file" id="bg-file-input" accept="image/*"></div><div class="form-group"><label>展示区图片</label><input type="file" id="dp-file-input" accept="image/*"></div><div class="form-group"><label>字体URL</label><input type="text" id="font-url-input" placeholder="https://.../font.woff"></div></div><button id="save-settings-btn" class="action-button">全局保存</button></div></div>
-    <div id="data-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="data-view-title">数据管理</h1></div><div class="app-content"><div class="form-group"><label>导出数据</label><p>将所有数据打包下载。</p><button id="export-btn" class="action-button">导出</button></div><div class="form-group"><label>导入数据</label><p>上传备份文件以恢复数据。注意：这将完全覆盖当前所有数据！</p><button id="import-btn" class="action-button">导入</button><input type="file" id="import-file-input" accept=".json" style="display:none;"></div></div></div>
-    <div id="player-view" class="view"><div class="player-top-bar"><button id="player-back-btn" data-target="desktop-view">‹</button><button id="toggle-color-picker-btn">🎨</button></div><div id="color-picker" style="display:none;position:absolute;top:60px;right:20px;background-color:#282828;padding:10px;border-radius:8px;grid-template-columns:repeat(4,1fr);gap:10px;box-shadow:0 4px 15px rgba(0,0,0,0.4);z-index:20;"></div><div style="flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 20px 0;"><img id="album-art" alt="Album Art"></div><div class="lyric-bubble"><p id="lyric-display">...</p></div><audio id="audio-player" controls></audio></div>
-    <!-- 弹窗 -->
-    <div id="announcement-modal" class="modal-overlay" style="display:none;"><div class="modal-content"><h2>公告</h2><p>播放器作者：末<br>禁止二改，使用者的一切行为与作者无关，播放器仅适用于娱乐交流。<br><br>作者小红书：末<br>有问题可以私信询问</p><button id="close-modal-btn" class="action-button" style="width:auto;float:right;">好的</button></div></div>
-    <div id="cropper-modal"><div class="cropper-container"><div id="cropper-image-container"><img id="cropper-image"></div><div class="cropper-actions"><button id="crop-cancel-btn">取消</button><button id="crop-confirm-btn">裁剪</button></div></div></div>
+    <div id="beautify-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="beautify-view-title">美化</h1></div><div class="app-content"><div class="beautify-section"><h2>主题模式</h2><div style="display:flex;align-items:center;gap:10px;"><span>夜间</span><label class="switch"><input type="checkbox" id="theme-switch"><span class="slider"></span></label><span>日间</span></div></div><div class="beautify-section"><h2>应用定制</h2><div id="app-customize-container"></div></div><div class="beautify-section"><h2>播放器界面</h2><div class="form-group"><label>背景</label><input type="file" id="player-bg-input" accept="image/*"></div><div class="form-group"><label>封面尺寸 (px)</label><div style="display:flex;gap:10px;"><input type="number" id="cover-width-input" placeholder="宽度"><input type="number" id="cover-height-input" placeholder="高度"></div></div></div><div class="beautify-section"><h2>桌面与字体</h2><div class="form-group"><label>全局背景</label><input type="file" id="bg-file-input" accept="image/*"></div><div class="form-group"><label>展示区图片</label><input type="file" id="dp-file-input" accept="image/*"></div><div class="form-group"><label>字体URL</label><input type="text" id="font-url-input" placeholder="https://.../font.woff"></div></div><button id="save-settings-btn" class="action-button">全局保存</button></div></div>
+    <div id="data-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="data-view-title">数据管理</h1></div><div class="app-content"><div class="form-group"><label>导出</label><button id="export-btn" class="action-button">导出</button></div><div class="form-group"><label>导入</label><button id="import-btn" class="action-button">导入</button><input type="file" id="import-file-input" accept=".json" style="display:none;"></div></div></div>
+    <div id="player-view" class="view"><div class="player-top-bar"><button class="back-btn" data-target="playlist-view">‹</button><button id="toggle-color-picker-btn">🎨</button></div><div id="color-picker"></div><div style="flex-grow:1;display:flex;justify-content:center;align-items:center;padding:20px 0;"><img id="album-art" alt="Art"></div><div class="lyric-bubble"><p id="lyric-display">...</p></div><audio id="audio-player" controls></audio></div>
+    <div id="announcement-modal" class="modal-overlay"><div class="modal-content"><h2>公告</h2><p>作者：末<br>禁止二改，使用者一切行为与作者无关，仅供娱乐交流。<br><br>小红书：末</p><button id="close-modal-btn">好的</button></div></div>
+    <div id="crop-modal-overlay" class="modal-overlay"><div id="crop-modal-content"><div id="cropper-container"><img id="cropper-image"></div><div class="cropper-buttons"><button id="cancel-crop-btn">取消</button><button id="confirm-crop-btn">裁剪</button></div></div></div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const db = new Dexie('MusicOSDatabase'); db.version(3).stores({ songs: '++id, title', settings: 'key' });
-        const views = document.querySelectorAll('.view'), audioPlayer = document.getElementById('audio-player');
-        let currentLyrics = [], tempObjectURLs = [], cropperInstance = null, resolveCropperPromise = null;
-        let currentCoverImageBlob = null; // 用于暂存裁剪后的图片
-        const defaultCover = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzg4OCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIj48L2NpcmNsZT48cGF0aCBkPSJtMTYgOCAtOCAzIDggMyB6IiAvPjwvZz48L3N2Zz4=';
-        function navigateTo(viewId) { views.forEach(v => v.classList.toggle('active', v.id === viewId)); }
-        function updateClock() { const t=document.getElementById('desktop-time'), d=document.getElementById('desktop-date'), n=new Date(); t.textContent=n.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); d.textContent=n.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'}); }
-        let previewSettings = {};
-        const defaultAppConfig = [ { id: 'settings', name: '播放设置', icon: '⚙️', target: 'settings-view' }, { id: 'playlist', name: '播放列表', icon: '🎵', target: 'playlist-view' }, { id: 'beautify', name: '美化', icon: '🎨', target: 'beautify-view' }, { id: 'data', name: '数据管理', icon: '💾', target: 'data-view' }];
-        
-        // --- 核心功能区 ---
-        async function applyAllSettings(isPreview = false) { /* ... 保持不变 ... */ const settings = isPreview ? previewSettings : {}; if (!isPreview) { const dbSettings = await db.settings.bulkGet(['appConfig', 'desktopBg', 'displayPicture', 'fontUrl', 'theme']); settings.appConfig = dbSettings[0]?.value || defaultAppConfig; settings.desktopBg = dbSettings[1]?.value; settings.displayPicture = dbSettings[2]?.value; settings.fontUrl = dbSettings[3]?.value; settings.theme = dbSettings[4]?.value || 'dark'; } document.body.classList.toggle('light-mode', settings.theme === 'light'); const appDock = document.getElementById('app-dock'); appDock.innerHTML = ''; settings.appConfig.forEach(app => { const iconContent = app.icon instanceof Blob ? `<img src="${URL.createObjectURL(app.icon)}" style="width:100%;height:100%;object-fit:cover;border-radius:15px;">` : app.icon; appDock.innerHTML += `<a href="#" class="app-icon" data-target="${app.target}"><div class="icon-bg">${iconContent}</div><span>${app.name}</span></a>`; const titleEl = document.getElementById(`${app.target}-title`); if (titleEl) titleEl.textContent = app.name; }); const desktopView = document.getElementById('desktop-view'), dpContainer = document.getElementById('display-picture-container'); desktopView.style.backgroundImage = settings.desktopBg ? `url(${URL.createObjectURL(settings.desktopBg)})` : ''; dpContainer.style.backgroundImage = settings.displayPicture ? `url(${URL.createObjectURL(settings.displayPicture)})` : ''; const fontStyleEl = document.getElementById('dynamic-font-style'); if(fontStyleEl) fontStyleEl.remove(); if (settings.fontUrl) { const style = document.createElement('style'); style.id = 'dynamic-font-style'; style.innerHTML = `@font-face { font-family: 'CustomFont'; src: url('${settings.fontUrl}'); } :root { --global-font: 'CustomFont', sans-serif; }`; document.head.appendChild(style); } }
-        async function loadBeautifySettings() { /* ... 保持不变 ... */ const s = await db.settings.bulkGet(['appConfig', 'fontUrl', 'theme', 'coverWidth', 'coverHeight']); previewSettings = { appConfig: JSON.parse(JSON.stringify(s[0]?.value || defaultAppConfig)), fontUrl: s[1]?.value || '', theme: s[2]?.value || 'dark', coverWidth: s[3]?.value || '', coverHeight: s[4]?.value || '' }; const container = document.getElementById('app-customize-container'); container.innerHTML = ''; previewSettings.appConfig.forEach((app, index) => { const iconUrl = app.icon instanceof Blob ? URL.createObjectURL(app.icon) : ''; container.innerHTML += `<div class="app-customize-item"><img id="preview-icon-${index}" src="${iconUrl}" alt="icon"><div class="inputs"><input type="text" value="${app.name}" data-index="${index}" class="app-name-input"><input type="file" accept="image/*" data-index="${index}" class="app-icon-input" style="display:none;"><button onclick="this.previousElementSibling.click()">换图标</button></div></div>`; }); document.getElementById('theme-switch').checked = previewSettings.theme === 'light'; document.getElementById('font-url-input').value = previewSettings.fontUrl; document.getElementById('cover-width-input').value = previewSettings.coverWidth; document.getElementById('cover-height-input').value = previewSettings.coverHeight; document.querySelectorAll('.app-name-input, .app-icon-input, #bg-file-input, #dp-file-input, #font-url-input, #theme-switch, #player-bg-input, #cover-width-input, #cover-height-input').forEach(el => { el.oninput = handlePreviewChange; el.onchange = handlePreviewChange; }); }
-        function handlePreviewChange(e) { /* ... 保持不变 ... */ const el = e.target; if (el.classList.contains('app-name-input')) previewSettings.appConfig[el.dataset.index].name = el.value; else if (el.classList.contains('app-icon-input') && el.files[0]) { previewSettings.appConfig[el.dataset.index].icon = el.files[0]; document.getElementById(`preview-icon-${el.dataset.index}`).src = URL.createObjectURL(el.files[0]); } else if (el.id === 'bg-file-input' && el.files[0]) previewSettings.desktopBg = el.files[0]; else if (el.id === 'dp-file-input' && el.files[0]) previewSettings.displayPicture = el.files[0]; else if (el.id === 'font-url-input') previewSettings.fontUrl = el.value; else if (el.id === 'theme-switch') previewSettings.theme = el.checked ? 'light' : 'dark'; else if (el.id === 'player-bg-input' && el.files[0]) previewSettings.playerBg = el.files[0]; else if (el.id === 'cover-width-input') previewSettings.coverWidth = el.value; else if (el.id === 'cover-height-input') previewSettings.coverHeight = el.value; applyAllSettings(true); }
-        document.getElementById('save-settings-btn').addEventListener('click', async () => { const settingsToSave = [ { key: 'appConfig', value: previewSettings.appConfig }, { key: 'fontUrl', value: previewSettings.fontUrl }, { key: 'theme', value: previewSettings.theme }, { key: 'coverWidth', value: previewSettings.coverWidth }, { key: 'coverHeight', value: previewSettings.coverHeight } ]; if (previewSettings.desktopBg) settingsToSave.push({ key: 'desktopBg', value: previewSettings.desktopBg }); if (previewSettings.displayPicture) settingsToSave.push({ key: 'displayPicture', value: previewSettings.displayPicture }); if (previewSettings.playerBg) settingsToSave.push({ key: 'playerBg', value: previewSettings.playerBg }); await db.settings.bulkPut(settingsToSave); alert('美化设置已保存！'); });
-        
-        // --- 裁剪器 ---
-        function openCropper(imageFile, aspectRatio) {
-            return new Promise(resolve => {
-                const modal = document.getElementById('cropper-modal'), img = document.getElementById('cropper-image');
-                const reader = new FileReader();
-                reader.onload = e => {
-                    img.src = e.target.result;
-                    modal.style.display = 'flex';
-                    if (cropperInstance) cropperInstance.destroy();
-                    cropperInstance = new Cropper(img, { aspectRatio, viewMode: 1, background: false });
-                    resolveCropperPromise = resolve; // 将resolve函数存到全局
-                };
-                reader.readAsDataURL(imageFile);
-            });
-        }
-        document.getElementById('crop-confirm-btn').addEventListener('click', () => {
-            cropperInstance.getCroppedCanvas().toBlob(blob => {
-                if (resolveCropperPromise) resolveCropperPromise(blob);
-                document.getElementById('cropper-modal').style.display = 'none';
-            });
-        });
-        document.getElementById('crop-cancel-btn').addEventListener('click', () => {
-            if (resolveCropperPromise) resolveCropperPromise(null);
-            document.getElementById('cropper-modal').style.display = 'none';
-        });
+        document.addEventListener('DOMContentLoaded', () => {
+            const db = new Dexie('MusicOSDatabase');
+            db.version(3).stores({ songs: '++id, title', settings: 'key' });
 
-        // --- 播放列表与歌曲管理 (已更新) ---
-        async function renderPlaylist() { const container = document.getElementById('playlist-container'); container.innerHTML = ''; const allSongs = await db.songs.toArray(); if (allSongs.length === 0) { container.innerHTML = '<li>播放列表为空...</li>'; return; } allSongs.forEach(song => { const li = document.createElement('li'); li.className = 'playlist-item'; const imageUrl = song.imageFile ? URL.createObjectURL(song.imageFile) : defaultCover; li.innerHTML = `<img src="${imageUrl}" alt="${song.title}"><div class="song-info" data-song-id="${song.id}"><span class="song-title">${song.title}</span></div><div class="actions"><button class="edit-song-btn" data-song-id="${song.id}">✏️</button><button class="delete-song-btn" data-song-id="${song.id}">🗑️</button></div>`; container.appendChild(li); }); }
-        document.getElementById('playlist-container').addEventListener('click', e => { const songInfo = e.target.closest('.song-info'), deleteBtn = e.target.closest('.delete-song-btn'), editBtn = e.target.closest('.edit-song-btn'); if(songInfo) startPlayback(parseInt(songInfo.dataset.songId)); if(deleteBtn) deleteSong(parseInt(deleteBtn.dataset.songId)); if(editBtn) openEditView(parseInt(editBtn.dataset.songId)); });
-        async function openEditView(id) {
-            const song = await db.songs.get(id); if(!song) return;
-            resetSettingsView();
-            document.getElementById('settings-view-title').textContent = '编辑歌曲';
-            document.getElementById('song-title-input').value = song.title;
-            document.getElementById('lyric-input').value = song.lyrics;
-            const saveBtn = document.getElementById('save-preset-btn');
-            saveBtn.textContent = '更新歌曲';
-            saveBtn.dataset.editingId = id;
-            if (song.imageFile) {
-                currentCoverImageBlob = song.imageFile;
-                const preview = document.getElementById('cover-preview');
-                preview.src = URL.createObjectURL(song.imageFile);
-                preview.style.display = 'block';
-            }
-            navigateTo('settings-view');
-        }
-        function resetSettingsView() {
-            document.getElementById('settings-view-title').textContent = '播放设置';
-            document.getElementById('song-title-input').value = '';
-            document.getElementById('lyric-input').value = '';
-            document.getElementById('audio-file-input').value = '';
-            const saveBtn = document.getElementById('save-preset-btn');
-            saveBtn.textContent = '保存预设';
-            delete saveBtn.dataset.editingId;
-            currentCoverImageBlob = null;
-            document.getElementById('cover-preview').style.display = 'none';
-        }
-        document.querySelector('.app-icon[data-target="settings-view"]').addEventListener('click', resetSettingsView);
-        async function deleteSong(id) { if(confirm('确定要删除这首歌曲吗？')) { await db.songs.delete(id); renderPlaylist(); } }
-        const coverImageBtn = document.getElementById('cover-image-btn');
-        const coverImageInput = document.createElement('input'); coverImageInput.type = 'file'; coverImageInput.accept = 'image/*';
-        coverImageBtn.addEventListener('click', () => coverImageInput.click());
-        coverImageInput.addEventListener('change', async e => {
-            const file = e.target.files[0]; if (!file) return;
-            const [w, h] = await Promise.all([db.settings.get('coverWidth'), db.settings.get('coverHeight')]);
-            const aspect = (w?.value && h?.value) ? w.value / h.value : NaN;
-            const croppedBlob = await openCropper(file, aspect);
-            if(croppedBlob) {
-                currentCoverImageBlob = croppedBlob;
-                const preview = document.getElementById('cover-preview');
-                preview.src = URL.createObjectURL(croppedBlob);
-                preview.style.display = 'block';
-            }
-            coverImageInput.value = '';
-        });
-        document.getElementById('save-preset-btn').addEventListener('click', async (e) => {
-            const saveBtn = e.target;
-            const id = parseInt(saveBtn.dataset.editingId);
-            const title = document.getElementById('song-title-input').value, lyricsText = document.getElementById('lyric-input').value, audioFile = document.getElementById('audio-file-input').files[0];
-            if (!title || !lyricsText) { alert('请填写标题和字幕！'); return; }
+            // Global variables
+            let currentLyrics = [], tempObjectURLs = [], cropper, croppedImageBlob = null;
+            const defaultCover = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzg4OCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIj48L2NpcmNsZT48cGF0aCBkPSJtMTYgOCAtOCAzIDggMyB6IiAvPjwvZz48L3N2Zz4=';
+            let previewSettings = {};
+            const defaultAppConfig = [
+                { id: 'settings', name: '播放设置', icon: '⚙️', target: 'settings-view' },
+                { id: 'playlist', name: '播放列表', icon: '🎵', target: 'playlist-view' },
+                { id: 'beautify', name: '美化', icon: '🎨', target: 'beautify-view' },
+                { id: 'data', name: '数据管理', icon: '💾', target: 'data-view' }
+            ];
 
-            if(id) { // 更新模式
-                const songUpdate = { title, lyrics: lyricsText };
-                if (audioFile) songUpdate.audioFile = audioFile;
-                if (currentCoverImageBlob) songUpdate.imageFile = currentCoverImageBlob;
-                await db.songs.update(id, songUpdate);
-                alert('更新成功！');
-            } else { // 新增模式
-                if (!audioFile) { alert('请选择音频文件！'); return; }
-                await db.songs.add({ title, lyrics: lyricsText, audioFile, imageFile: currentCoverImageBlob });
+            // --- Core App Logic: Navigation & Clock ---
+            function navigateTo(viewId) { document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId)); }
+            function setupNavigation() {
+                document.body.addEventListener('click', e => {
+                    const appIcon = e.target.closest('.app-icon');
+                    const backBtn = e.target.closest('.back-btn, #player-back-btn');
+                    if (appIcon) {
+                        e.preventDefault();
+                        navigateTo(appIcon.dataset.target);
+                        if (appIcon.dataset.target === 'beautify-view') loadBeautifySettings();
+                    }
+                    if (backBtn) {
+                        if (document.getElementById('player-view').classList.contains('active')) {
+                            document.getElementById('audio-player').pause();
+                        }
+                        navigateTo(backBtn.dataset.target);
+                        applyAllSettings(false); // Revert any unsaved previews
+                    }
+                });
+            }
+            function updateClock() {
+                const timeEl = document.getElementById('desktop-time'), dateEl = document.getElementById('desktop-date'), now = new Date();
+                timeEl.textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+                dateEl.textContent = now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' });
+            }
+
+            // --- Settings & Beautification ---
+            async function applyAllSettings(isPreview = false) {
+                const settings = isPreview ? previewSettings : {};
+                if (!isPreview) {
+                    const dbSettings = await db.settings.bulkGet(['appConfig', 'desktopBg', 'displayPicture', 'fontUrl', 'theme', 'lyricColor']);
+                    settings.appConfig = dbSettings[0]?.value || defaultAppConfig;
+                    settings.desktopBg = dbSettings[1]?.value;
+                    settings.displayPicture = dbSettings[2]?.value;
+                    settings.fontUrl = dbSettings[3]?.value;
+                    settings.theme = dbSettings[4]?.value || 'dark';
+                    settings.lyricColor = dbSettings[5]?.value || '#ffffff';
+                }
+                document.body.classList.toggle('light-mode', settings.theme === 'light');
+                const appDock = document.getElementById('app-dock'); appDock.innerHTML = '';
+                settings.appConfig.forEach(app => {
+                    const iconContent = app.icon instanceof Blob ? `<img src="${URL.createObjectURL(app.icon)}" style="width:100%;height:100%;object-fit:cover;border-radius:15px;">` : app.icon;
+                    appDock.innerHTML += `<a href="#" class="app-icon" data-target="${app.target}"><div class="icon-bg">${iconContent}</div><span>${app.name}</span></a>`;
+                    const titleEl = document.getElementById(`${app.target}-title`); if (titleEl) titleEl.textContent = app.name;
+                });
+                const desktopView = document.getElementById('desktop-view'), dpContainer = document.getElementById('display-picture-container');
+                desktopView.style.backgroundImage = settings.desktopBg ? `url(${URL.createObjectURL(settings.desktopBg)})` : '';
+                dpContainer.style.backgroundImage = settings.displayPicture ? `url(${URL.createObjectURL(settings.displayPicture)})` : '';
+                const fontStyleEl = document.getElementById('dynamic-font-style'); if(fontStyleEl) fontStyleEl.remove();
+                if (settings.fontUrl) { const style = document.createElement('style'); style.id = 'dynamic-font-style'; style.innerHTML = `@font-face{font-family:'CustomFont';src:url('${settings.fontUrl}');}:root{--global-font:'CustomFont',sans-serif;}`; document.head.appendChild(style); }
+                document.documentElement.style.setProperty('--lyric-color', settings.lyricColor);
+            }
+            async function loadBeautifySettings() {
+                const s = await db.settings.bulkGet(['appConfig', 'fontUrl', 'theme', 'coverWidth', 'coverHeight']);
+                previewSettings = { appConfig: JSON.parse(JSON.stringify(s[0]?.value || defaultAppConfig)), fontUrl: s[1]?.value || '', theme: s[2]?.value || 'dark', coverWidth: s[3]?.value || '', coverHeight: s[4]?.value || '' };
+                const container = document.getElementById('app-customize-container'); container.innerHTML = '';
+                previewSettings.appConfig.forEach((app, index) => { const iconUrl = app.icon instanceof Blob ? URL.createObjectURL(app.icon) : ''; container.innerHTML += `<div class="app-customize-item"><img id="preview-icon-${index}" src="${iconUrl}" alt="icon"><div class="inputs"><input type="text" value="${app.name}" data-index="${index}" class="app-name-input"><input type="file" accept="image/*" data-index="${index}" class="app-icon-input"></div></div>`; });
+                document.getElementById('theme-switch').checked = previewSettings.theme === 'light'; document.getElementById('font-url-input').value = previewSettings.fontUrl; document.getElementById('cover-width-input').value = previewSettings.coverWidth; document.getElementById('cover-height-input').value = previewSettings.coverHeight;
+                document.querySelectorAll('.app-name-input,.app-icon-input,#bg-file-input,#dp-file-input,#font-url-input,#theme-switch,#player-bg-input,#cover-width-input,#cover-height-input').forEach(el => { el.oninput = handlePreviewChange; el.onchange = handlePreviewChange; });
+            }
+            function handlePreviewChange(e) { const el = e.target; if (el.classList.contains('app-name-input')) previewSettings.appConfig[el.dataset.index].name = el.value; else if (el.classList.contains('app-icon-input') && el.files[0]) { previewSettings.appConfig[el.dataset.index].icon = el.files[0]; document.getElementById(`preview-icon-${el.dataset.index}`).src = URL.createObjectURL(el.files[0]); } else if (el.id === 'bg-file-input' && el.files[0]) previewSettings.desktopBg = el.files[0]; else if (el.id === 'dp-file-input' && el.files[0]) previewSettings.displayPicture = el.files[0]; else if (el.id === 'font-url-input') previewSettings.fontUrl = el.value; else if (el.id === 'theme-switch') previewSettings.theme = el.checked ? 'light' : 'dark'; else if (el.id === 'player-bg-input' && el.files[0]) previewSettings.playerBg = el.files[0]; else if (el.id === 'cover-width-input') previewSettings.coverWidth = el.value; else if (el.id === 'cover-height-input') previewSettings.coverHeight = el.value; applyAllSettings(true); }
+            document.getElementById('save-settings-btn').addEventListener('click', async () => { const settingsToSave = [{ key: 'appConfig', value: previewSettings.appConfig }, { key: 'fontUrl', value: previewSettings.fontUrl }, { key: 'theme', value: previewSettings.theme }, { key: 'coverWidth', value: previewSettings.coverWidth }, { key: 'coverHeight', value: previewSettings.coverHeight }]; if (previewSettings.desktopBg) settingsToSave.push({ key: 'desktopBg', value: previewSettings.desktopBg }); if (previewSettings.displayPicture) settingsToSave.push({ key: 'displayPicture', value: previewSettings.displayPicture }); if (previewSettings.playerBg) settingsToSave.push({ key: 'playerBg', value: previewSettings.playerBg }); await db.settings.bulkPut(settingsToSave); alert('美化设置已保存！'); });
+            
+            // --- Song Management: Add, Edit, Delete ---
+            async function renderPlaylist() {
+                const container = document.getElementById('playlist-container'); container.innerHTML = '';
+                const allSongs = await db.songs.toArray();
+                if (allSongs.length === 0) { container.innerHTML = '<li>播放列表为空...</li>'; return; }
+                allSongs.forEach(song => { const li = document.createElement('li'); li.className = 'playlist-item'; const imageUrl = song.imageFile ? URL.createObjectURL(song.imageFile) : defaultCover; li.innerHTML = `<img src="${imageUrl}" alt="${song.title}"><div class="song-info" data-song-id="${song.id}"><span class="song-title">${song.title}</span></div><div class="actions"><button class="edit-song-btn" data-song-id="${song.id}">✏️</button><button class="delete-song-btn" data-song-id="${song.id}">🗑️</button></div>`; container.appendChild(li); });
+            }
+            document.getElementById('playlist-container').addEventListener('click', e => {
+                const songInfo = e.target.closest('.song-info'), deleteBtn = e.target.closest('.delete-song-btn'), editBtn = e.target.closest('.edit-song-btn');
+                if (songInfo) startPlayback(parseInt(songInfo.dataset.songId));
+                if (deleteBtn) deleteSong(parseInt(deleteBtn.dataset.songId));
+                if (editBtn) openEditView(parseInt(editBtn.dataset.songId));
+            });
+            async function deleteSong(id) { if (confirm('确定要删除这首歌曲吗？')) { await db.songs.delete(id); renderPlaylist(); } }
+            document.getElementById('save-preset-btn').addEventListener('click', async () => {
+                const title = document.getElementById('song-title-input').value, lyricsText = document.getElementById('lyric-input').value, audioFile = document.getElementById('audio-file-input').files[0];
+                if (!title || !lyricsText || !audioFile) { alert('请填写标题、字幕并选择音频文件！'); return; }
+                await db.songs.add({ title, lyrics: lyricsText, audioFile, imageFile: croppedImageBlob });
                 alert('保存成功！');
+                croppedImageBlob = null; document.getElementById('add-image-preview').style.display = 'none'; document.getElementById('settings-view').querySelector('input[type="text"]').value = ''; document.getElementById('settings-view').querySelector('textarea').value = ''; document.getElementById('settings-view').querySelector('input[type="file"]').value = '';
+                navigateTo('playlist-view'); renderPlaylist();
+            });
+            async function openEditView(id) {
+                const song = await db.songs.get(id); if (!song) return;
+                const form = document.getElementById('edit-song-form'); form.dataset.songId = id;
+                document.getElementById('edit-view-title').textContent = `编辑: ${song.title}`;
+                document.getElementById('edit-song-title-input').value = song.title; document.getElementById('edit-lyric-input').value = song.lyrics;
+                document.getElementById('edit-image-preview').src = song.imageFile ? URL.createObjectURL(song.imageFile) : '';
+                navigateTo('edit-song-view');
             }
-            resetSettingsView(); navigateTo('playlist-view'); renderPlaylist();
-        });
+            document.getElementById('edit-song-form').addEventListener('submit', async e => {
+                e.preventDefault(); const form = e.target, id = parseInt(form.dataset.songId);
+                const updates = { title: document.getElementById('edit-song-title-input').value, lyrics: document.getElementById('edit-lyric-input').value };
+                const audioFile = document.getElementById('edit-audio-file-input').files[0];
+                if (audioFile) updates.audioFile = audioFile; if (croppedImageBlob) updates.imageFile = croppedImageBlob;
+                await db.songs.update(id, updates);
+                alert('更新成功！');
+                croppedImageBlob = null; form.reset(); navigateTo('playlist-view'); renderPlaylist();
+            });
 
-        // --- 播放器与数据管理 ---
-        async function startPlayback(id) { /* ... 保持不变 ... */ tempObjectURLs.forEach(url => URL.revokeObjectURL(url)); tempObjectURLs = []; const [song, playerBg, coverWidth, coverHeight] = await Promise.all([db.songs.get(id), db.settings.get('playerBg'), db.settings.get('coverWidth'), db.settings.get('coverHeight')]); if (!song) return; const imageUrl = song.imageFile ? URL.createObjectURL(song.imageFile) : defaultCover; const audioUrl = URL.createObjectURL(song.audioFile); tempObjectURLs.push(imageUrl, audioUrl); const playerView = document.getElementById('player-view'), albumArt = document.getElementById('album-art'); playerView.style.backgroundImage = playerBg ? `url(${URL.createObjectURL(playerBg.value)})` : ''; albumArt.style.width = coverWidth?.value ? `${coverWidth.value}px` : '70vw'; albumArt.style.height = coverHeight?.value ? `${coverHeight.value}px` : '70vw'; albumArt.style.maxWidth = coverWidth?.value ? `${coverWidth.value}px` : '300px'; albumArt.style.maxHeight = coverHeight?.value ? `${coverHeight.value}px` : '300px'; albumArt.src = imageUrl; audioPlayer.src = audioUrl; parseLyrics(song.lyrics); navigateTo('player-view'); audioPlayer.play(); }
-        function parseTime(t) { const p = t.split(':'); return (parseInt(p[0],10)*3600)+(parseInt(p[1],10)*60)+parseFloat(p[2]); }
-        function parseLyrics(lyricText) { currentLyrics = []; const lines=lyricText.split('\n'); const regex=/(\d{2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3})/; for(let i=0;i<lines.length;i++){ const match=lines[i].trim().match(regex); if(match&&i+1<lines.length){ currentLyrics.push({startTime:parseTime(match[1]),endTime:parseTime(match[2]),text:lines[i+1].trim()});i++;}} }
-        function updateLyric() { const ct=audioPlayer.currentTime, line=currentLyrics.find(l=>ct>=l.startTime&&ct<l.endTime), text=line?line.text:'...', el=document.getElementById('lyric-display'); if(el.textContent!==text){ el.textContent=text; } }
-        function setupColorPicker() { /* ... 保持不变 ... */ const picker = document.getElementById('color-picker'), toggleBtn = document.getElementById('toggle-color-picker-btn'); const colors = ['#FFFFFF', '#1DB954', '#FFC107', '#03A9F4', '#E91E63', '#9C27B0', '#F44336', '#795548']; picker.innerHTML = ''; colors.forEach(color => { const swatch = document.createElement('div'); swatch.className = 'color-swatch'; swatch.style.backgroundColor = color; swatch.addEventListener('click', () => { document.documentElement.style.setProperty('--lyric-color', color); picker.style.display = 'none'; }); picker.appendChild(swatch); }); toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid'; }); document.addEventListener('click', (e) => { if (!picker.contains(e.target) && e.target !== toggleBtn) picker.style.display = 'none'; }); }
-        const blobToBase64 = blob => new Promise((r,j)=>{const rd=new FileReader();rd.onloadend=()=>r(rd.result);rd.onerror=j;rd.readAsDataURL(blob)}); const base64ToBlob = base64 => fetch(base64).then(res => res.blob());
-        document.getElementById('export-btn').addEventListener('click', async () => { /* ... 保持不变 ... */ const songs = await db.songs.toArray(), settings = await db.settings.toArray(), exportData = { songs: [], settings: [] }; for(const song of songs) exportData.songs.push({ ...song, audioFile: await blobToBase64(song.audioFile), imageFile: song.imageFile ? await blobToBase64(song.imageFile) : null }); for (const setting of settings) exportData.settings.push({ ...setting, value: setting.value instanceof Blob ? await blobToBase64(setting.value) : setting.value }); const jsonString = JSON.stringify(exportData), blob = new Blob([jsonString], {type: 'application/json'}), url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = `music-os-backup-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); });
-        const importFileInput = document.getElementById('import-file-input'); document.getElementById('import-btn').addEventListener('click', () => importFileInput.click()); importFileInput.addEventListener('change', e => { /* ... 保持不变 ... */ const file = e.target.files[0]; if (!file || !confirm('确定要导入吗？这将覆盖所有现有数据！')) return; const reader = new FileReader(); reader.onload = async (event) => { try { const importData = JSON.parse(event.target.result); await db.transaction('rw', db.songs, db.settings, async () => { await db.songs.clear(); await db.settings.clear(); const songsToPut = []; for(const song of importData.songs) songsToPut.push({ ...song, audioFile: await base64ToBlob(song.audioFile), imageFile: song.imageFile ? await base64ToBlob(song.imageFile) : null }); await db.songs.bulkPut(songsToPut); const settingsToPut = []; for(const setting of importData.settings) settingsToPut.push({ ...setting, value: typeof setting.value === 'string' && setting.value.startsWith('data:') ? await base64ToBlob(setting.value) : setting.value }); await db.settings.bulkPut(settingsToPut); }); alert('导入成功！应用将重新加载。'); location.reload(); } catch (err) { alert('导入失败，文件格式错误或已损坏！' + err); } }; reader.readAsText(file); });
-        
-        // --- 初始化与事件绑定 ---
-        const modal = document.getElementById('announcement-modal'); document.getElementById('announcement-btn').addEventListener('click', () => modal.style.display = 'flex'); document.getElementById('close-modal-btn').addEventListener('click', () => modal.style.display = 'none');
-        document.getElementById('display-picture-container').addEventListener('click', async () => { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = async e => { if (e.target.files[0]) { const cropped = await openCropper(e.target.files[0], 1); if(cropped) { await db.settings.put({key: 'displayPicture', value: cropped}); applyAllSettings(); } } }; input.click(); });
-        async function initialize() { setupNavigation(); setupColorPicker(); setInterval(updateClock, 1000); updateClock(); const settingsExist = await db.settings.get('appConfig'); if (!settingsExist) { await db.settings.put({key: 'appConfig', value: defaultAppConfig}); } await applyAllSettings(); await renderPlaylist(); navigateTo('desktop-view'); }
-        initialize();
-    });
+            // --- Player Core ---
+            async function startPlayback(id) {
+                tempObjectURLs.forEach(url => URL.revokeObjectURL(url)); tempObjectURLs = [];
+                const [song, playerBg, coverWidth, coverHeight] = await Promise.all([db.songs.get(id), db.settings.get('playerBg'), db.settings.get('coverWidth'), db.settings.get('coverHeight')]);
+                if (!song) return;
+                const imageUrl = song.imageFile ? URL.createObjectURL(song.imageFile) : defaultCover; const audioUrl = URL.createObjectURL(song.audioFile);
+                tempObjectURLs.push(imageUrl, audioUrl);
+                const playerView = document.getElementById('player-view'), albumArt = document.getElementById('album-art');
+                playerView.style.backgroundImage = playerBg ? `url(${URL.createObjectURL(playerBg.value)})` : '';
+                albumArt.style.width = coverWidth?.value ? `${coverWidth.value}px` : '70vw'; albumArt.style.height = coverHeight?.value ? `${coverHeight.value}px` : '70vw';
+                albumArt.style.maxWidth = coverWidth?.value ? `${coverWidth.value}px` : '300px'; albumArt.style.maxHeight = coverHeight?.value ? `${coverHeight.value}px` : '300px';
+                albumArt.src = imageUrl; document.getElementById('audio-player').src = audioUrl; parseLyrics(song.lyrics); navigateTo('player-view'); document.getElementById('audio-player').play();
+            }
+            function parseTime(t) { const p = t.split(':'); return (parseInt(p[0], 10) * 3600) + (parseInt(p[1], 10) * 60) + parseFloat(p[2]); }
+            function parseLyrics(lyricText) { currentLyrics = []; const lines = lyricText.split('\n'), regex = /(\d{2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3})/; for (let i = 0; i < lines.length; i++) { const match = lines[i].trim().match(regex); if (match && i + 1 < lines.length) { currentLyrics.push({ startTime: parseTime(match[1]), endTime: parseTime(match[2]), text: lines[i + 1].trim() }); i++; } } }
+            function updateLyric() { const audio = document.getElementById('audio-player'); const line = currentLyrics.find(l => audio.currentTime >= l.startTime && audio.currentTime < l.endTime), text = line ? line.text : '...', el = document.getElementById('lyric-display'); if (el.textContent !== text) { el.textContent = text; } }
+            document.getElementById('audio-player').addEventListener('timeupdate', updateLyric);
+            function setupColorPicker() {
+                const picker = document.getElementById('color-picker'), toggleBtn = document.getElementById('toggle-color-picker-btn');
+                const colors = ['#FFFFFF', '#1DB954', '#FFC107', '#03A9F4', '#E91E63', '#9C27B0', '#F44336', '#795548'];
+                picker.innerHTML = '';
+                colors.forEach(color => { const swatch = document.createElement('div'); swatch.className = 'color-swatch'; swatch.style.backgroundColor = color; swatch.addEventListener('click', async () => { document.documentElement.style.setProperty('--lyric-color', color); await db.settings.put({ key: 'lyricColor', value: color }); picker.classList.remove('visible'); }); picker.appendChild(swatch); });
+                toggleBtn.addEventListener('click', e => { e.stopPropagation(); picker.classList.toggle('visible'); });
+                document.addEventListener('click', e => { if (!picker.contains(e.target) && e.target !== toggleBtn) picker.classList.remove('visible'); });
+            }
+            
+            // --- Data Management: Import/Export ---
+            const blobToBase64 = blob => new Promise((resolve, reject) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob); });
+            const base64ToBlob = base64 => fetch(base64).then(res => res.blob());
+            document.getElementById('export-btn').addEventListener('click', async () => { const songs = await db.songs.toArray(), settings = await db.settings.toArray(), exportData = { songs: [], settings: [] }; for (const song of songs) exportData.songs.push({ ...song, audioFile: await blobToBase64(song.audioFile), imageFile: song.imageFile ? await blobToBase64(song.imageFile) : null }); for (const setting of settings) exportData.settings.push({ ...setting, value: setting.value instanceof Blob ? await blobToBase64(setting.value) : setting.value }); const jsonString = JSON.stringify(exportData), blob = new Blob([jsonString], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = `music-os-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(url); });
+            const importFileInput = document.getElementById('import-file-input'); document.getElementById('import-btn').addEventListener('click', () => importFileInput.click());
+            importFileInput.addEventListener('change', e => { const file = e.target.files[0]; if (!file || !confirm('确定导入吗？这将覆盖所有现有数据！')) return; const reader = new FileReader(); reader.onload = async (event) => { try { const importData = JSON.parse(event.target.result); await db.transaction('rw', db.songs, db.settings, async () => { await db.songs.clear(); await db.settings.clear(); const songsToPut = []; for (const song of importData.songs) songsToPut.push({ ...song, audioFile: await base64ToBlob(song.audioFile), imageFile: song.imageFile ? await base64ToBlob(song.imageFile) : null }); await db.songs.bulkPut(songsToPut); const settingsToPut = []; for (const setting of importData.settings) settingsToPut.push({ ...setting, value: typeof setting.value === 'string' && setting.value.startsWith('data:') ? await base64ToBlob(setting.value) : setting.value }); await db.settings.bulkPut(settingsToPut); }); alert('导入成功！应用将重新加载。'); location.reload(); } catch (err) { alert('导入失败！' + err); } }; reader.readAsText(file); });
+            
+            // --- Image Cropper Logic ---
+            async function initCropper(file, previewElementId) {
+                const modal = document.getElementById('crop-modal-overlay'), image = document.getElementById('cropper-image');
+                const [w, h] = await Promise.all([db.settings.get('coverWidth'), db.settings.get('coverHeight')]);
+                const ratio = (w?.value && h?.value) ? w.value / h.value : 1;
+                image.src = URL.createObjectURL(file); modal.style.display = 'flex';
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(image, { aspectRatio: ratio, viewMode: 1 });
+                document.getElementById('confirm-crop-btn').onclick = () => { cropper.getCroppedCanvas().toBlob(blob => { croppedImageBlob = blob; const preview = document.getElementById(previewElementId); preview.src = URL.createObjectURL(blob); preview.style.display = 'block'; modal.style.display = 'none'; }); };
+                document.getElementById('cancel-crop-btn').onclick = () => { modal.style.display = 'none'; cropper.destroy(); };
+            }
+            document.getElementById('image-file-input').addEventListener('change', e => { if (e.target.files[0]) initCropper(e.target.files[0], 'add-image-preview'); });
+            document.getElementById('edit-image-file-input').addEventListener('change', e => { if (e.target.files[0]) initCropper(e.target.files[0], 'edit-image-preview'); });
+
+            // --- Miscellaneous & Initialization ---
+            document.getElementById('display-picture-container').addEventListener('click', () => { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = async e => { if (e.target.files[0]) { await db.settings.put({ key: 'displayPicture', value: e.target.files[0] }); applyAllSettings(); } }; input.click(); });
+            const modal = document.getElementById('announcement-modal'); document.getElementById('announcement-btn').addEventListener('click', () => modal.style.display = 'flex'); document.getElementById('close-modal-btn').addEventListener('click', () => modal.style.display = 'none');
+            async function initialize() { setupNavigation(); setupColorPicker(); setInterval(updateClock, 1000); updateClock(); const settingsExist = await db.settings.get('appConfig'); if (!settingsExist) { await db.settings.put({ key: 'appConfig', value: defaultAppConfig }); } await applyAllSettings(); await renderPlaylist(); navigateTo('desktop-view'); }
+            initialize();
+        });
     </script>
 </body>
 </html>
