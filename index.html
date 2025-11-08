@@ -51,8 +51,10 @@
         .app-customize-row { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
         .app-customize-row .preview-icon { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; background-color: var(--bg-tertiary); flex-shrink: 0; }
         .app-customize-row .app-name-input { flex-grow: 1; padding: 10px; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; }
-        /* ★ FIX: Shrunk the "Select File" button */
         .app-customize-row .select-file-btn { padding: 8px 12px; font-size: 13px; background-color: #03A9F4; color: white; border: none; border-radius: 4px; white-space: nowrap; }
+        .input-with-button { display: flex; gap: 10px; }
+        .input-with-button input { flex-grow: 1; }
+        .input-with-button button { padding: 10px 15px; background-color: #1DB954; color: white; border: none; border-radius: 4px; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: var(--bg-secondary); padding: 25px; border-radius: 12px; max-width: 90%; width: 350px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); } .modal-content button { float: right; }
         #crop-modal-content { width: 90vw; max-width: 500px; padding: 10px; } #cropper-container { width: 100%; height: 60vh; max-height: 400px; } #cropper-image { display: block; max-width: 100%; } .cropper-buttons { text-align: right; margin-top: 10px; }
@@ -65,7 +67,8 @@
     <div id="settings-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="settings-view-title">播放设置</h1></div><div class="app-content"><div class="form-group"><label>歌曲标题</label><input type="text" id="song-title-input"></div><div class="form-group"><label>字幕/歌词</label><textarea id="lyric-input" rows="5" placeholder="格式:&#10;00:00:01.000 --> 00:00:04.000&#10;这是第一句歌词..."></textarea></div><div class="form-group"><label>音频文件</label><input type="file" id="audio-file-input" accept="audio/*"></div><div class="form-group"><label>封面图片 (可选)</label><div style="display:flex;align-items:center"><input type="file" id="image-file-input" accept="image/*" style="flex-grow:1"><img id="add-image-preview" class="image-preview" style="display:none"></div></div><button id="save-preset-btn" class="action-button">保存预设</button></div></div>
     <div id="edit-song-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="playlist-view">‹</button><h1 id="edit-view-title">编辑歌曲</h1></div><div class="app-content"><form id="edit-song-form"><div class="form-group"><label>歌曲标题</label><input type="text" id="edit-song-title-input"></div><div class="form-group"><label>字幕/歌词</label><textarea id="edit-lyric-input" rows="5"></textarea></div><div class="form-group"><label>更换音频文件 (可选)</label><input type="file" id="edit-audio-file-input" accept="audio/*"></div><div class="form-group"><label>更换封面图片 (可选)</label><div style="display:flex;align-items:center"><input type="file" id="edit-image-file-input" accept="image/*" style="flex-grow:1"><img id="edit-image-preview" class="image-preview"></div></div><button id="update-song-btn" class="action-button" type="submit">保存更改</button></form></div></div>
     <div id="playlist-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="playlist-view-title">播放列表</h1></div><div class="app-content"><ul id="playlist-container"></ul></div></div>
-    <div id="beautify-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="beautify-view-title">美化</h1></div><div class="app-content"><div class="beautify-section"><h2>主题模式</h2><div style="display:flex;align-items:center;gap:10px;"><span>夜间</span><label class="switch"><input type="checkbox" id="theme-switch"><span class="slider"></span></label><span>日间</span></div></div><div class="beautify-section"><h2>应用定制</h2><div id="app-customize-container"></div></div><div class="beautify-section"><h2>播放器界面</h2><div class="form-group"><label>背景</label><input type="file" id="player-bg-input" accept="image/*"></div><div class="form-group"><label>封面尺寸 (px)</label><div style="display:flex;gap:10px;"><input type="number" id="cover-width-input" placeholder="宽度"><input type="number" id="cover-height-input" placeholder="高度"></div></div></div><div class="beautify-section"><h2>桌面与字体</h2><div class="form-group"><label>全局背景</label><input type="file" id="bg-file-input" accept="image/*"></div><div class="form-group"><label>展示区图片</label><input type="file" id="dp-file-input" accept="image/*"></div><div class="form-group"><label>字体URL</label><input type="text" id="font-url-input" placeholder="https://.../font.woff"></div></div><button id="save-settings-btn" class="action-button">全局保存</button></div></div>
+    <!-- ★ MODIFICATION: Beautify view layout updated -->
+    <div id="beautify-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="beautify-view-title">美化</h1></div><div class="app-content"><div class="beautify-section"><h2>主题模式</h2><div style="display:flex;align-items:center;gap:10px;"><span>夜间</span><label class="switch"><input type="checkbox" id="theme-switch"><span class="slider"></span></label><span>日间</span></div></div><div class="beautify-section"><h2>应用定制</h2><div id="app-customize-container"></div></div><div class="beautify-section"><h2>播放器界面</h2><div class="form-group"><label>背景</label><input type="file" id="player-bg-input" accept="image/*"></div><div class="form-group"><label>封面尺寸 (px)</label><div class="input-with-button"><input type="number" id="cover-width-input" placeholder="宽度"><input type="number" id="cover-height-input" placeholder="高度"><button id="save-cover-size-btn">保存</button></div></div></div><div class="beautify-section"><h2>桌面与字体</h2><div class="form-group"><label>全局背景</label><input type="file" id="bg-file-input" accept="image/*"></div><div class="form-group"><label>展示区图片</label><input type="file" id="dp-file-input" accept="image/*"></div><div class="form-group"><label>字体URL</label><div class="input-with-button"><input type="text" id="font-url-input" placeholder="https://.../font.woff"><button id="save-font-btn">保存</button></div></div></div></div></div>
     <div id="data-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="data-view-title">数据管理</h1></div><div class="app-content"><p style="color: var(--text-secondary); line-height: 1.6; margin-top: 0;">这里是您的数据中心。您可以将所有歌曲、美化设置和个人配置导出为一个单一的 <code>.json</code> 备份文件。 这个文件可以在任何设备上通过“导入”功能恢复您的整个播放器，实现无缝迁移和数据保护。</p><div class="form-group"><label>导出</label><button id="export-btn" class="action-button">导出全部数据</button></div><div class="form-group"><label>导入</label><button id="import-btn" class="action-button">导入备份文件 (覆盖)</button><input type="file" id="import-file-input" accept=".json" style="display:none;"></div></div></div>
     <div id="player-view" class="view"><div class="player-top-bar"><button class="back-btn" data-target="playlist-view">‹</button><button id="toggle-color-picker-btn">🎨</button></div><div id="color-picker"></div><div style="flex-grow:1;display:flex;justify-content:center;align-items:center;padding:20px 0;"><img id="album-art" alt="Art"></div><div class="lyric-bubble"><p id="lyric-display">...</p></div><audio id="audio-player" controls></audio></div>
     <div id="announcement-modal" class="modal-overlay"><div class="modal-content"><h2>公告</h2><p>作者：末<br>禁止二改，使用者一切行为与作者无关，仅供娱乐交流。<br><br>小红书：末</p><button id="close-modal-btn">好的</button></div></div>
@@ -79,7 +82,7 @@
             let currentLyrics = [], cropper, croppedImageBlob = null;
             let tempObjectURLs = { player: [], playlist: [], beautify: [], config: [] };
             const defaultCover = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzg4OCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm9undQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIj48L2NpcmNsZT48cGF0aCBkPSJtMTYgOCAtOCAzIDggMyB6IiAvPjwvZz48L3N2Zz4=';
-            let previewSettings = {};
+            let appConfig = []; // Use a single source of truth for app config
             const defaultAppConfig = [
                 { id: 'settings', name: '播放设置', icon: '⚙️', target: 'settings-view' },
                 { id: 'playlist', name: '播放列表', icon: '🎵', target: 'playlist-view' },
@@ -90,32 +93,16 @@
             function revokeURLs(key) { if (tempObjectURLs[key]) { tempObjectURLs[key].forEach(url => URL.revokeObjectURL(url)); tempObjectURLs[key] = []; } }
             function navigateTo(viewId) { document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId)); }
             
-            // ★ FIX: Centralized navigation and modal logic in one robust handler
             function setupNavigation() {
                 document.body.addEventListener('click', e => {
                     const appIcon = e.target.closest('.app-icon');
                     const backBtn = e.target.closest('.back-btn, #player-back-btn');
                     const announcementBtn = e.target.closest('#announcement-btn');
                     const closeModalBtn = e.target.closest('#close-modal-btn');
-
-                    if (appIcon) {
-                        e.preventDefault();
-                        navigateTo(appIcon.dataset.target);
-                        if (appIcon.dataset.target === 'beautify-view') loadBeautifySettings();
-                    }
-                    if (backBtn) {
-                        if (document.getElementById('player-view').classList.contains('active')) {
-                            document.getElementById('audio-player').pause();
-                        }
-                        navigateTo(backBtn.dataset.target);
-                        applyAllSettings(false);
-                    }
-                    if (announcementBtn) {
-                        document.getElementById('announcement-modal').style.display = 'flex';
-                    }
-                    if (closeModalBtn) {
-                        e.target.closest('.modal-overlay').style.display = 'none';
-                    }
+                    if (appIcon) { e.preventDefault(); navigateTo(appIcon.dataset.target); if (appIcon.dataset.target === 'beautify-view') loadBeautifySettings(); }
+                    if (backBtn) { if (document.getElementById('player-view').classList.contains('active')) { document.getElementById('audio-player').pause(); } navigateTo(backBtn.dataset.target); }
+                    if (announcementBtn) { document.getElementById('announcement-modal').style.display = 'flex'; }
+                    if (closeModalBtn) { e.target.closest('.modal-overlay').style.display = 'none'; }
                 });
             }
 
@@ -125,52 +112,100 @@
                 dateEl.textContent = now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' });
             }
 
-            async function applyAllSettings(isPreview = false) {
+            // ★ MODIFICATION: Renamed to reflect its role as the single source of truth renderer
+            async function renderUI() {
                 revokeURLs('config');
-                const settings = isPreview ? previewSettings : {};
-                if (!isPreview) {
-                    const dbSettings = await db.settings.bulkGet(['appConfig', 'desktopBg', 'displayPicture', 'fontUrl', 'theme', 'lyricColor']);
-                    settings.appConfig = dbSettings[0]?.value || defaultAppConfig;
-                    settings.desktopBg = dbSettings[1]?.value;
-                    settings.displayPicture = dbSettings[2]?.value;
-                    settings.fontUrl = dbSettings[3]?.value;
-                    settings.theme = dbSettings[4]?.value || 'dark';
-                    settings.lyricColor = dbSettings[5]?.value || '#ffffff';
-                }
-                document.body.classList.toggle('light-mode', settings.theme === 'light');
+                const [dbAppConfig, desktopBg, displayPicture, fontUrl, theme, lyricColor] = await db.settings.bulkGet(['appConfig', 'desktopBg', 'displayPicture', 'fontUrl', 'theme', 'lyricColor']);
+                appConfig = dbAppConfig?.value || JSON.parse(JSON.stringify(defaultAppConfig));
+                
+                document.body.classList.toggle('light-mode', theme?.value === 'light');
                 const appDock = document.getElementById('app-dock'); appDock.innerHTML = '';
-                settings.appConfig.forEach(app => {
+                appConfig.forEach(app => {
                     let iconContent = app.icon;
                     if (app.icon instanceof Blob) { const url = URL.createObjectURL(app.icon); tempObjectURLs.config.push(url); iconContent = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:15px;">`; }
                     appDock.innerHTML += `<a href="#" class="app-icon" data-target="${app.target}"><div class="icon-bg">${iconContent}</div><span>${app.name}</span></a>`;
-                    const titleEl = document.getElementById(`${app.id}-view-title`); if (titleEl) titleEl.textContent = app.name;
+                    const titleEl = document.getElementById(`${app.target}-title`); if (titleEl) titleEl.textContent = app.name;
                 });
                 const desktopView = document.getElementById('desktop-view'), dpContainer = document.getElementById('display-picture-container');
-                if (settings.desktopBg) { const url = URL.createObjectURL(settings.desktopBg); tempObjectURLs.config.push(url); desktopView.style.backgroundImage = `url(${url})`; } else { desktopView.style.backgroundImage = ''; }
-                if (settings.displayPicture) { const url = URL.createObjectURL(settings.displayPicture); tempObjectURLs.config.push(url); dpContainer.style.backgroundImage = `url(${url})`; } else { dpContainer.style.backgroundImage = ''; }
+                if (desktopBg?.value) { const url = URL.createObjectURL(desktopBg.value); tempObjectURLs.config.push(url); desktopView.style.backgroundImage = `url(${url})`; } else { desktopView.style.backgroundImage = ''; }
+                if (displayPicture?.value) { const url = URL.createObjectURL(displayPicture.value); tempObjectURLs.config.push(url); dpContainer.style.backgroundImage = `url(${url})`; } else { dpContainer.style.backgroundImage = ''; }
                 const fontStyleEl = document.getElementById('dynamic-font-style'); if(fontStyleEl) fontStyleEl.remove();
-                if (settings.fontUrl) { const style = document.createElement('style'); style.id = 'dynamic-font-style'; style.innerHTML = `@font-face{font-family:'CustomFont';src:url('${settings.fontUrl}');}:root{--global-font:'CustomFont',sans-serif;}`; document.head.appendChild(style); }
-                document.documentElement.style.setProperty('--lyric-color', settings.lyricColor);
+                if (fontUrl?.value) { const style = document.createElement('style'); style.id = 'dynamic-font-style'; style.innerHTML = `@font-face{font-family:'CustomFont';src:url('${fontUrl.value}');}:root{--global-font:'CustomFont',sans-serif;}`; document.head.appendChild(style); }
+                document.documentElement.style.setProperty('--lyric-color', lyricColor?.value || '#ffffff');
             }
+
+            // ★ MODIFICATION: Simplified beautify logic to be event-driven
             async function loadBeautifySettings() {
                 revokeURLs('beautify');
-                const s = await db.settings.bulkGet(['appConfig', 'fontUrl', 'theme', 'coverWidth', 'coverHeight']);
-                previewSettings = { appConfig: JSON.parse(JSON.stringify(s[0]?.value || defaultAppConfig)), fontUrl: s[1]?.value || '', theme: s[2]?.value || 'dark', coverWidth: s[3]?.value || '', coverHeight: s[4]?.value || '' };
+                const [fontUrl, theme, coverWidth, coverHeight] = await db.settings.bulkGet(['fontUrl', 'theme', 'coverWidth', 'coverHeight']);
                 const container = document.getElementById('app-customize-container'); container.innerHTML = '';
-                previewSettings.appConfig.forEach((app, index) => {
+                appConfig.forEach((app, index) => {
                     let iconUrl = '';
-                    if (app.icon instanceof Blob) { iconUrl = URL.createObjectURL(app.icon); tempObjectURLs.beautify.push(iconUrl); }
-                    else if (typeof app.icon === 'string' && !app.icon.includes(':')) { iconUrl = ''; }
+                    if (app.icon instanceof Blob) { iconUrl = URL.createObjectURL(app.icon); tempObjectURLs.beautify.push(iconUrl); } 
+                    else if (typeof app.icon === 'string' && !app.icon.includes(':')) { iconUrl = ''; } 
                     else { iconUrl = app.icon; }
-                    const itemHTML = `<div class="app-customize-row"><img id="preview-icon-${index}" class="preview-icon" src="${iconUrl}" alt="icon"><input type="text" value="${app.name}" data-index="${index}" class="app-name-input"><button class="select-file-btn" data-index="${index}">选择文件</button><input type="file" id="icon-input-${index}" accept="image/*" data-index="${index}" class="app-icon-input" style="display:none;"></div>`;
-                    container.innerHTML += itemHTML;
+                    container.innerHTML += `<div class="app-customize-row"><img id="preview-icon-${index}" class="preview-icon" src="${iconUrl}" alt="icon"><input type="text" value="${app.name}" data-index="${index}" class="app-name-input"><button class="select-file-btn" data-index="${index}">选择文件</button><input type="file" id="icon-input-${index}" accept="image/*" data-index="${index}" style="display:none;"></div>`;
                 });
-                container.querySelectorAll('.select-file-btn').forEach(btn => btn.addEventListener('click', () => { document.getElementById(`icon-input-${btn.dataset.index}`).click(); }));
-                document.getElementById('theme-switch').checked = previewSettings.theme === 'light'; document.getElementById('font-url-input').value = previewSettings.fontUrl; document.getElementById('cover-width-input').value = previewSettings.coverWidth; document.getElementById('cover-height-input').value = previewSettings.coverHeight;
-                document.querySelectorAll('.app-name-input, .app-icon-input, #bg-file-input, #dp-file-input, #font-url-input, #theme-switch, #player-bg-input, #cover-width-input, #cover-height-input').forEach(el => { el.oninput = handlePreviewChange; el.onchange = handlePreviewChange; });
+                document.getElementById('theme-switch').checked = theme?.value === 'light';
+                document.getElementById('font-url-input').value = fontUrl?.value || '';
+                document.getElementById('cover-width-input').value = coverWidth?.value || '';
+                document.getElementById('cover-height-input').value = coverHeight?.value || '';
             }
-            function handlePreviewChange(e) { const el = e.target; if (el.classList.contains('app-name-input')) previewSettings.appConfig[el.dataset.index].name = el.value; else if (el.classList.contains('app-icon-input') && el.files[0]) { previewSettings.appConfig[el.dataset.index].icon = el.files[0]; const url = URL.createObjectURL(el.files[0]); tempObjectURLs.beautify.push(url); document.getElementById(`preview-icon-${el.dataset.index}`).src = url; } else if (el.id === 'bg-file-input' && el.files[0]) previewSettings.desktopBg = el.files[0]; else if (el.id === 'dp-file-input' && el.files[0]) previewSettings.displayPicture = el.files[0]; else if (el.id === 'font-url-input') previewSettings.fontUrl = el.value; else if (el.id === 'theme-switch') previewSettings.theme = el.checked ? 'light' : 'dark'; else if (el.id === 'player-bg-input' && el.files[0]) previewSettings.playerBg = el.files[0]; else if (el.id === 'cover-width-input') previewSettings.coverWidth = el.value; else if (el.id === 'cover-height-input') previewSettings.coverHeight = el.value; applyAllSettings(true); }
-            document.getElementById('save-settings-btn').addEventListener('click', async () => { const settingsToSave = [{ key: 'appConfig', value: previewSettings.appConfig }, { key: 'fontUrl', value: previewSettings.fontUrl }, { key: 'theme', value: previewSettings.theme }, { key: 'coverWidth', value: previewSettings.coverWidth }, { key: 'coverHeight', value: previewSettings.coverHeight }]; if (previewSettings.desktopBg) settingsToSave.push({ key: 'desktopBg', value: previewSettings.desktopBg }); if (previewSettings.displayPicture) settingsToSave.push({ key: 'displayPicture', value: previewSettings.displayPicture }); if (previewSettings.playerBg) settingsToSave.push({ key: 'playerBg', value: previewSettings.playerBg }); await db.settings.bulkPut(settingsToSave); alert('美化设置已保存！'); });
+
+            // ★ MODIFICATION: Event listeners for instant save in beautify view
+            const beautifyView = document.getElementById('beautify-view');
+            beautifyView.addEventListener('change', async (e) => {
+                const el = e.target;
+                const index = el.dataset.index;
+
+                if (el.classList.contains('app-name-input')) {
+                    appConfig[index].name = el.value;
+                    await db.settings.put({ key: 'appConfig', value: appConfig });
+                    renderUI(); // Re-render desktop
+                } else if (el.matches('input[type=file]')) {
+                    const file = el.files[0];
+                    if (!file) return;
+
+                    if (el.id === `icon-input-${index}`) {
+                        appConfig[index].icon = file;
+                        await db.settings.put({ key: 'appConfig', value: appConfig });
+                        document.getElementById(`preview-icon-${index}`).src = URL.createObjectURL(file);
+                        renderUI();
+                    } else if (el.id === 'player-bg-input') {
+                        await db.settings.put({ key: 'playerBg', value: file });
+                    } else if (el.id === 'bg-file-input') {
+                        await db.settings.put({ key: 'desktopBg', value: file });
+                        renderUI();
+                    } else if (el.id === 'dp-file-input') {
+                        await db.settings.put({ key: 'displayPicture', value: file });
+                        renderUI();
+                    }
+                } else if (el.id === 'theme-switch') {
+                    const theme = el.checked ? 'light' : 'dark';
+                    await db.settings.put({ key: 'theme', value: theme });
+                    renderUI();
+                }
+            });
+
+            beautifyView.addEventListener('click', async (e) => {
+                const el = e.target;
+                if (el.classList.contains('select-file-btn')) {
+                    document.getElementById(`icon-input-${el.dataset.index}`).click();
+                } else if (el.id === 'save-font-btn') {
+                    const fontUrl = document.getElementById('font-url-input').value;
+                    await db.settings.put({ key: 'fontUrl', value: fontUrl });
+                    await renderUI();
+                    alert('字体已保存！');
+                } else if (el.id === 'save-cover-size-btn') {
+                    const width = document.getElementById('cover-width-input').value;
+                    const height = document.getElementById('cover-height-input').value;
+                    await db.settings.bulkPut([
+                        { key: 'coverWidth', value: width },
+                        { key: 'coverHeight', value: height }
+                    ]);
+                    alert('封面尺寸已保存！');
+                }
+            });
             
             async function renderPlaylist() {
                 revokeURLs('playlist');
@@ -257,9 +292,9 @@
             document.getElementById('image-file-input').addEventListener('change', e => { if (e.target.files[0]) initCropper(e.target.files[0], 'add-image-preview'); });
             document.getElementById('edit-image-file-input').addEventListener('change', e => { if (e.target.files[0]) initCropper(e.target.files[0], 'edit-image-preview'); });
 
-            document.getElementById('display-picture-container').addEventListener('click', () => { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = async e => { if (e.target.files[0]) { await db.settings.put({ key: 'displayPicture', value: e.target.files[0] }); applyAllSettings(); } }; input.click(); });
+            document.getElementById('display-picture-container').addEventListener('click', () => { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = async e => { if (e.target.files[0]) { await db.settings.put({ key: 'displayPicture', value: e.target.files[0] }); renderUI(); } }; input.click(); });
             
-            async function initialize() { setupNavigation(); setupColorPicker(); setInterval(updateClock, 1000); updateClock(); const settingsExist = await db.settings.get('appConfig'); if (!settingsExist) { await db.settings.put({ key: 'appConfig', value: defaultAppConfig }); } await applyAllSettings(); await renderPlaylist(); navigateTo('desktop-view'); }
+            async function initialize() { setupNavigation(); setupColorPicker(); setInterval(updateClock, 1000); updateClock(); const settingsExist = await db.settings.get('appConfig'); if (!settingsExist) { await db.settings.put({ key: 'appConfig', value: defaultAppConfig }); } await renderUI(); await renderPlaylist(); navigateTo('desktop-view'); }
             initialize();
         });
     </script>
