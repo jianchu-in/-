@@ -43,15 +43,20 @@
         .player-top-bar button { color: white; text-shadow: 0 0 5px black;}
         #album-art { object-fit: cover; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
         .lyric-bubble { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px 20px; margin-bottom: 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .lyric-bubble p { color: var(--lyric-color); /* Critical for color change */ }
+        .lyric-bubble p { color: var(--lyric-color); }
         #color-picker { display: none; position: absolute; top: 60px; right: 20px; background-color: #282828; padding: 10px; border-radius: 8px; grid-template-columns: repeat(4, 1fr); gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 20;}
-        #color-picker.visible { display: grid; } /* Use class for visibility */
+        #color-picker.visible { display: grid; }
         .color-swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; } .color-swatch:hover { border-color: white; }
         .beautify-section { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
+        .app-customize-row { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+        .app-customize-row .preview-icon { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; background-color: var(--bg-tertiary); flex-shrink: 0; }
+        .app-customize-row .app-name-input { flex-grow: 1; padding: 10px; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; }
+        /* ★ FIX: Shrunk the "Select File" button */
+        .app-customize-row .select-file-btn { padding: 8px 12px; font-size: 13px; background-color: #03A9F4; color: white; border: none; border-radius: 4px; white-space: nowrap; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: var(--bg-secondary); padding: 25px; border-radius: 12px; max-width: 90%; width: 350px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); } .modal-content button { float: right; }
         #crop-modal-content { width: 90vw; max-width: 500px; padding: 10px; } #cropper-container { width: 100%; height: 60vh; max-height: 400px; } #cropper-image { display: block; max-width: 100%; } .cropper-buttons { text-align: right; margin-top: 10px; }
-        .image-preview { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; margin-left: 10px; }
+        .image-preview { width: 50px; height: 50px; border-radius: 4px; object-fit: contain; margin-left: 10px; background-color: var(--bg-tertiary); }
         .switch { position:relative;display:inline-block;width:60px;height:34px} .switch input{opacity:0;width:0;height:0} .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:34px} .slider:before{position:absolute;content:"";height:26px;width:26px;left:4px;bottom:4px;background-color:white;transition:.4s;border-radius:50%} input:checked+.slider{background-color:#2196F3} input:checked+.slider:before{transform:translateX(26px)}
     </style>
 </head>
@@ -61,7 +66,7 @@
     <div id="edit-song-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="playlist-view">‹</button><h1 id="edit-view-title">编辑歌曲</h1></div><div class="app-content"><form id="edit-song-form"><div class="form-group"><label>歌曲标题</label><input type="text" id="edit-song-title-input"></div><div class="form-group"><label>字幕/歌词</label><textarea id="edit-lyric-input" rows="5"></textarea></div><div class="form-group"><label>更换音频文件 (可选)</label><input type="file" id="edit-audio-file-input" accept="audio/*"></div><div class="form-group"><label>更换封面图片 (可选)</label><div style="display:flex;align-items:center"><input type="file" id="edit-image-file-input" accept="image/*" style="flex-grow:1"><img id="edit-image-preview" class="image-preview"></div></div><button id="update-song-btn" class="action-button" type="submit">保存更改</button></form></div></div>
     <div id="playlist-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="playlist-view-title">播放列表</h1></div><div class="app-content"><ul id="playlist-container"></ul></div></div>
     <div id="beautify-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="beautify-view-title">美化</h1></div><div class="app-content"><div class="beautify-section"><h2>主题模式</h2><div style="display:flex;align-items:center;gap:10px;"><span>夜间</span><label class="switch"><input type="checkbox" id="theme-switch"><span class="slider"></span></label><span>日间</span></div></div><div class="beautify-section"><h2>应用定制</h2><div id="app-customize-container"></div></div><div class="beautify-section"><h2>播放器界面</h2><div class="form-group"><label>背景</label><input type="file" id="player-bg-input" accept="image/*"></div><div class="form-group"><label>封面尺寸 (px)</label><div style="display:flex;gap:10px;"><input type="number" id="cover-width-input" placeholder="宽度"><input type="number" id="cover-height-input" placeholder="高度"></div></div></div><div class="beautify-section"><h2>桌面与字体</h2><div class="form-group"><label>全局背景</label><input type="file" id="bg-file-input" accept="image/*"></div><div class="form-group"><label>展示区图片</label><input type="file" id="dp-file-input" accept="image/*"></div><div class="form-group"><label>字体URL</label><input type="text" id="font-url-input" placeholder="https://.../font.woff"></div></div><button id="save-settings-btn" class="action-button">全局保存</button></div></div>
-    <div id="data-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="data-view-title">数据管理</h1></div><div class="app-content"><div class="form-group"><label>导出</label><button id="export-btn" class="action-button">导出</button></div><div class="form-group"><label>导入</label><button id="import-btn" class="action-button">导入</button><input type="file" id="import-file-input" accept=".json" style="display:none;"></div></div></div>
+    <div id="data-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="data-view-title">数据管理</h1></div><div class="app-content"><p style="color: var(--text-secondary); line-height: 1.6; margin-top: 0;">这里是您的数据中心。您可以将所有歌曲、美化设置和个人配置导出为一个单一的 <code>.json</code> 备份文件。 这个文件可以在任何设备上通过“导入”功能恢复您的整个播放器，实现无缝迁移和数据保护。</p><div class="form-group"><label>导出</label><button id="export-btn" class="action-button">导出全部数据</button></div><div class="form-group"><label>导入</label><button id="import-btn" class="action-button">导入备份文件 (覆盖)</button><input type="file" id="import-file-input" accept=".json" style="display:none;"></div></div></div>
     <div id="player-view" class="view"><div class="player-top-bar"><button class="back-btn" data-target="playlist-view">‹</button><button id="toggle-color-picker-btn">🎨</button></div><div id="color-picker"></div><div style="flex-grow:1;display:flex;justify-content:center;align-items:center;padding:20px 0;"><img id="album-art" alt="Art"></div><div class="lyric-bubble"><p id="lyric-display">...</p></div><audio id="audio-player" controls></audio></div>
     <div id="announcement-modal" class="modal-overlay"><div class="modal-content"><h2>公告</h2><p>作者：末<br>禁止二改，使用者一切行为与作者无关，仅供娱乐交流。<br><br>小红书：末</p><button id="close-modal-btn">好的</button></div></div>
     <div id="crop-modal-overlay" class="modal-overlay"><div id="crop-modal-content"><div id="cropper-container"><img id="cropper-image"></div><div class="cropper-buttons"><button id="cancel-crop-btn">取消</button><button id="confirm-crop-btn">裁剪</button></div></div></div>
@@ -71,9 +76,9 @@
             const db = new Dexie('MusicOSDatabase');
             db.version(3).stores({ songs: '++id, title', settings: 'key' });
 
-            // Global variables
-            let currentLyrics = [], tempObjectURLs = [], cropper, croppedImageBlob = null;
-            const defaultCover = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzg4OCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIj48L2NpcmNsZT48cGF0aCBkPSJtMTYgOCAtOCAzIDggMyB6IiAvPjwvZz48L3N2Zz4=';
+            let currentLyrics = [], cropper, croppedImageBlob = null;
+            let tempObjectURLs = { player: [], playlist: [], beautify: [], config: [] };
+            const defaultCover = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzg4OCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm9undQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIj48L2NpcmNsZT48cGF0aCBkPSJtMTYgOCAtOCAzIDggMyB6IiAvPjwvZz48L3N2Zz4=';
             let previewSettings = {};
             const defaultAppConfig = [
                 { id: 'settings', name: '播放设置', icon: '⚙️', target: 'settings-view' },
@@ -82,12 +87,17 @@
                 { id: 'data', name: '数据管理', icon: '💾', target: 'data-view' }
             ];
 
-            // --- Core App Logic: Navigation & Clock ---
+            function revokeURLs(key) { if (tempObjectURLs[key]) { tempObjectURLs[key].forEach(url => URL.revokeObjectURL(url)); tempObjectURLs[key] = []; } }
             function navigateTo(viewId) { document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId)); }
+            
+            // ★ FIX: Centralized navigation and modal logic in one robust handler
             function setupNavigation() {
                 document.body.addEventListener('click', e => {
                     const appIcon = e.target.closest('.app-icon');
                     const backBtn = e.target.closest('.back-btn, #player-back-btn');
+                    const announcementBtn = e.target.closest('#announcement-btn');
+                    const closeModalBtn = e.target.closest('#close-modal-btn');
+
                     if (appIcon) {
                         e.preventDefault();
                         navigateTo(appIcon.dataset.target);
@@ -98,18 +108,25 @@
                             document.getElementById('audio-player').pause();
                         }
                         navigateTo(backBtn.dataset.target);
-                        applyAllSettings(false); // Revert any unsaved previews
+                        applyAllSettings(false);
+                    }
+                    if (announcementBtn) {
+                        document.getElementById('announcement-modal').style.display = 'flex';
+                    }
+                    if (closeModalBtn) {
+                        e.target.closest('.modal-overlay').style.display = 'none';
                     }
                 });
             }
+
             function updateClock() {
                 const timeEl = document.getElementById('desktop-time'), dateEl = document.getElementById('desktop-date'), now = new Date();
                 timeEl.textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
                 dateEl.textContent = now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' });
             }
 
-            // --- Settings & Beautification ---
             async function applyAllSettings(isPreview = false) {
+                revokeURLs('config');
                 const settings = isPreview ? previewSettings : {};
                 if (!isPreview) {
                     const dbSettings = await db.settings.bulkGet(['appConfig', 'desktopBg', 'displayPicture', 'fontUrl', 'theme', 'lyricColor']);
@@ -123,34 +140,44 @@
                 document.body.classList.toggle('light-mode', settings.theme === 'light');
                 const appDock = document.getElementById('app-dock'); appDock.innerHTML = '';
                 settings.appConfig.forEach(app => {
-                    const iconContent = app.icon instanceof Blob ? `<img src="${URL.createObjectURL(app.icon)}" style="width:100%;height:100%;object-fit:cover;border-radius:15px;">` : app.icon;
+                    let iconContent = app.icon;
+                    if (app.icon instanceof Blob) { const url = URL.createObjectURL(app.icon); tempObjectURLs.config.push(url); iconContent = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:15px;">`; }
                     appDock.innerHTML += `<a href="#" class="app-icon" data-target="${app.target}"><div class="icon-bg">${iconContent}</div><span>${app.name}</span></a>`;
-                    const titleEl = document.getElementById(`${app.target}-title`); if (titleEl) titleEl.textContent = app.name;
+                    const titleEl = document.getElementById(`${app.id}-view-title`); if (titleEl) titleEl.textContent = app.name;
                 });
                 const desktopView = document.getElementById('desktop-view'), dpContainer = document.getElementById('display-picture-container');
-                desktopView.style.backgroundImage = settings.desktopBg ? `url(${URL.createObjectURL(settings.desktopBg)})` : '';
-                dpContainer.style.backgroundImage = settings.displayPicture ? `url(${URL.createObjectURL(settings.displayPicture)})` : '';
+                if (settings.desktopBg) { const url = URL.createObjectURL(settings.desktopBg); tempObjectURLs.config.push(url); desktopView.style.backgroundImage = `url(${url})`; } else { desktopView.style.backgroundImage = ''; }
+                if (settings.displayPicture) { const url = URL.createObjectURL(settings.displayPicture); tempObjectURLs.config.push(url); dpContainer.style.backgroundImage = `url(${url})`; } else { dpContainer.style.backgroundImage = ''; }
                 const fontStyleEl = document.getElementById('dynamic-font-style'); if(fontStyleEl) fontStyleEl.remove();
                 if (settings.fontUrl) { const style = document.createElement('style'); style.id = 'dynamic-font-style'; style.innerHTML = `@font-face{font-family:'CustomFont';src:url('${settings.fontUrl}');}:root{--global-font:'CustomFont',sans-serif;}`; document.head.appendChild(style); }
                 document.documentElement.style.setProperty('--lyric-color', settings.lyricColor);
             }
             async function loadBeautifySettings() {
+                revokeURLs('beautify');
                 const s = await db.settings.bulkGet(['appConfig', 'fontUrl', 'theme', 'coverWidth', 'coverHeight']);
                 previewSettings = { appConfig: JSON.parse(JSON.stringify(s[0]?.value || defaultAppConfig)), fontUrl: s[1]?.value || '', theme: s[2]?.value || 'dark', coverWidth: s[3]?.value || '', coverHeight: s[4]?.value || '' };
                 const container = document.getElementById('app-customize-container'); container.innerHTML = '';
-                previewSettings.appConfig.forEach((app, index) => { const iconUrl = app.icon instanceof Blob ? URL.createObjectURL(app.icon) : ''; container.innerHTML += `<div class="app-customize-item"><img id="preview-icon-${index}" src="${iconUrl}" alt="icon"><div class="inputs"><input type="text" value="${app.name}" data-index="${index}" class="app-name-input"><input type="file" accept="image/*" data-index="${index}" class="app-icon-input"></div></div>`; });
+                previewSettings.appConfig.forEach((app, index) => {
+                    let iconUrl = '';
+                    if (app.icon instanceof Blob) { iconUrl = URL.createObjectURL(app.icon); tempObjectURLs.beautify.push(iconUrl); }
+                    else if (typeof app.icon === 'string' && !app.icon.includes(':')) { iconUrl = ''; }
+                    else { iconUrl = app.icon; }
+                    const itemHTML = `<div class="app-customize-row"><img id="preview-icon-${index}" class="preview-icon" src="${iconUrl}" alt="icon"><input type="text" value="${app.name}" data-index="${index}" class="app-name-input"><button class="select-file-btn" data-index="${index}">选择文件</button><input type="file" id="icon-input-${index}" accept="image/*" data-index="${index}" class="app-icon-input" style="display:none;"></div>`;
+                    container.innerHTML += itemHTML;
+                });
+                container.querySelectorAll('.select-file-btn').forEach(btn => btn.addEventListener('click', () => { document.getElementById(`icon-input-${btn.dataset.index}`).click(); }));
                 document.getElementById('theme-switch').checked = previewSettings.theme === 'light'; document.getElementById('font-url-input').value = previewSettings.fontUrl; document.getElementById('cover-width-input').value = previewSettings.coverWidth; document.getElementById('cover-height-input').value = previewSettings.coverHeight;
-                document.querySelectorAll('.app-name-input,.app-icon-input,#bg-file-input,#dp-file-input,#font-url-input,#theme-switch,#player-bg-input,#cover-width-input,#cover-height-input').forEach(el => { el.oninput = handlePreviewChange; el.onchange = handlePreviewChange; });
+                document.querySelectorAll('.app-name-input, .app-icon-input, #bg-file-input, #dp-file-input, #font-url-input, #theme-switch, #player-bg-input, #cover-width-input, #cover-height-input').forEach(el => { el.oninput = handlePreviewChange; el.onchange = handlePreviewChange; });
             }
-            function handlePreviewChange(e) { const el = e.target; if (el.classList.contains('app-name-input')) previewSettings.appConfig[el.dataset.index].name = el.value; else if (el.classList.contains('app-icon-input') && el.files[0]) { previewSettings.appConfig[el.dataset.index].icon = el.files[0]; document.getElementById(`preview-icon-${el.dataset.index}`).src = URL.createObjectURL(el.files[0]); } else if (el.id === 'bg-file-input' && el.files[0]) previewSettings.desktopBg = el.files[0]; else if (el.id === 'dp-file-input' && el.files[0]) previewSettings.displayPicture = el.files[0]; else if (el.id === 'font-url-input') previewSettings.fontUrl = el.value; else if (el.id === 'theme-switch') previewSettings.theme = el.checked ? 'light' : 'dark'; else if (el.id === 'player-bg-input' && el.files[0]) previewSettings.playerBg = el.files[0]; else if (el.id === 'cover-width-input') previewSettings.coverWidth = el.value; else if (el.id === 'cover-height-input') previewSettings.coverHeight = el.value; applyAllSettings(true); }
+            function handlePreviewChange(e) { const el = e.target; if (el.classList.contains('app-name-input')) previewSettings.appConfig[el.dataset.index].name = el.value; else if (el.classList.contains('app-icon-input') && el.files[0]) { previewSettings.appConfig[el.dataset.index].icon = el.files[0]; const url = URL.createObjectURL(el.files[0]); tempObjectURLs.beautify.push(url); document.getElementById(`preview-icon-${el.dataset.index}`).src = url; } else if (el.id === 'bg-file-input' && el.files[0]) previewSettings.desktopBg = el.files[0]; else if (el.id === 'dp-file-input' && el.files[0]) previewSettings.displayPicture = el.files[0]; else if (el.id === 'font-url-input') previewSettings.fontUrl = el.value; else if (el.id === 'theme-switch') previewSettings.theme = el.checked ? 'light' : 'dark'; else if (el.id === 'player-bg-input' && el.files[0]) previewSettings.playerBg = el.files[0]; else if (el.id === 'cover-width-input') previewSettings.coverWidth = el.value; else if (el.id === 'cover-height-input') previewSettings.coverHeight = el.value; applyAllSettings(true); }
             document.getElementById('save-settings-btn').addEventListener('click', async () => { const settingsToSave = [{ key: 'appConfig', value: previewSettings.appConfig }, { key: 'fontUrl', value: previewSettings.fontUrl }, { key: 'theme', value: previewSettings.theme }, { key: 'coverWidth', value: previewSettings.coverWidth }, { key: 'coverHeight', value: previewSettings.coverHeight }]; if (previewSettings.desktopBg) settingsToSave.push({ key: 'desktopBg', value: previewSettings.desktopBg }); if (previewSettings.displayPicture) settingsToSave.push({ key: 'displayPicture', value: previewSettings.displayPicture }); if (previewSettings.playerBg) settingsToSave.push({ key: 'playerBg', value: previewSettings.playerBg }); await db.settings.bulkPut(settingsToSave); alert('美化设置已保存！'); });
             
-            // --- Song Management: Add, Edit, Delete ---
             async function renderPlaylist() {
+                revokeURLs('playlist');
                 const container = document.getElementById('playlist-container'); container.innerHTML = '';
                 const allSongs = await db.songs.toArray();
                 if (allSongs.length === 0) { container.innerHTML = '<li>播放列表为空...</li>'; return; }
-                allSongs.forEach(song => { const li = document.createElement('li'); li.className = 'playlist-item'; const imageUrl = song.imageFile ? URL.createObjectURL(song.imageFile) : defaultCover; li.innerHTML = `<img src="${imageUrl}" alt="${song.title}"><div class="song-info" data-song-id="${song.id}"><span class="song-title">${song.title}</span></div><div class="actions"><button class="edit-song-btn" data-song-id="${song.id}">✏️</button><button class="delete-song-btn" data-song-id="${song.id}">🗑️</button></div>`; container.appendChild(li); });
+                allSongs.forEach(song => { const li = document.createElement('li'); li.className = 'playlist-item'; let imageUrl = defaultCover; if (song.imageFile) { imageUrl = URL.createObjectURL(song.imageFile); tempObjectURLs.playlist.push(imageUrl); } li.innerHTML = `<img src="${imageUrl}" alt="${song.title}"><div class="song-info" data-song-id="${song.id}"><span class="song-title">${song.title}</span></div><div class="actions"><button class="edit-song-btn" data-song-id="${song.id}">✏️</button><button class="delete-song-btn" data-song-id="${song.id}">🗑️</button></div>`; container.appendChild(li); });
             }
             document.getElementById('playlist-container').addEventListener('click', e => {
                 const songInfo = e.target.closest('.song-info'), deleteBtn = e.target.closest('.delete-song-btn'), editBtn = e.target.closest('.edit-song-btn');
@@ -164,7 +191,8 @@
                 if (!title || !lyricsText || !audioFile) { alert('请填写标题、字幕并选择音频文件！'); return; }
                 await db.songs.add({ title, lyrics: lyricsText, audioFile, imageFile: croppedImageBlob });
                 alert('保存成功！');
-                croppedImageBlob = null; document.getElementById('add-image-preview').style.display = 'none'; document.getElementById('settings-view').querySelector('input[type="text"]').value = ''; document.getElementById('settings-view').querySelector('textarea').value = ''; document.getElementById('settings-view').querySelector('input[type="file"]').value = '';
+                croppedImageBlob = null; document.getElementById('add-image-preview').style.display = 'none';
+                document.getElementById('song-title-input').value = ''; document.getElementById('lyric-input').value = ''; document.getElementById('audio-file-input').value = ''; document.getElementById('image-file-input').value = '';
                 navigateTo('playlist-view'); renderPlaylist();
             });
             async function openEditView(id) {
@@ -185,15 +213,14 @@
                 croppedImageBlob = null; form.reset(); navigateTo('playlist-view'); renderPlaylist();
             });
 
-            // --- Player Core ---
             async function startPlayback(id) {
-                tempObjectURLs.forEach(url => URL.revokeObjectURL(url)); tempObjectURLs = [];
+                revokeURLs('player');
                 const [song, playerBg, coverWidth, coverHeight] = await Promise.all([db.songs.get(id), db.settings.get('playerBg'), db.settings.get('coverWidth'), db.settings.get('coverHeight')]);
                 if (!song) return;
                 const imageUrl = song.imageFile ? URL.createObjectURL(song.imageFile) : defaultCover; const audioUrl = URL.createObjectURL(song.audioFile);
-                tempObjectURLs.push(imageUrl, audioUrl);
+                tempObjectURLs.player.push(imageUrl, audioUrl);
                 const playerView = document.getElementById('player-view'), albumArt = document.getElementById('album-art');
-                playerView.style.backgroundImage = playerBg ? `url(${URL.createObjectURL(playerBg.value)})` : '';
+                if (playerBg && playerBg.value) { const url = URL.createObjectURL(playerBg.value); tempObjectURLs.player.push(url); playerView.style.backgroundImage = `url(${url})`; } else { playerView.style.backgroundImage = ''; }
                 albumArt.style.width = coverWidth?.value ? `${coverWidth.value}px` : '70vw'; albumArt.style.height = coverHeight?.value ? `${coverHeight.value}px` : '70vw';
                 albumArt.style.maxWidth = coverWidth?.value ? `${coverWidth.value}px` : '300px'; albumArt.style.maxHeight = coverHeight?.value ? `${coverHeight.value}px` : '300px';
                 albumArt.src = imageUrl; document.getElementById('audio-player').src = audioUrl; parseLyrics(song.lyrics); navigateTo('player-view'); document.getElementById('audio-player').play();
@@ -204,21 +231,19 @@
             document.getElementById('audio-player').addEventListener('timeupdate', updateLyric);
             function setupColorPicker() {
                 const picker = document.getElementById('color-picker'), toggleBtn = document.getElementById('toggle-color-picker-btn');
-                const colors = ['#FFFFFF', '#1DB954', '#FFC107', '#03A9F4', '#E91E63', '#9C27B0', '#F44336', '#795548'];
+                const colors = ['#FFFFFF', '#1DB954', '#FFC107', 'rgba(255,165,0,1)', 'rgba(0,191,255,1)', '#E91E63', '#9C27B0', 'rgba(135,206,250,1)'];
                 picker.innerHTML = '';
                 colors.forEach(color => { const swatch = document.createElement('div'); swatch.className = 'color-swatch'; swatch.style.backgroundColor = color; swatch.addEventListener('click', async () => { document.documentElement.style.setProperty('--lyric-color', color); await db.settings.put({ key: 'lyricColor', value: color }); picker.classList.remove('visible'); }); picker.appendChild(swatch); });
                 toggleBtn.addEventListener('click', e => { e.stopPropagation(); picker.classList.toggle('visible'); });
                 document.addEventListener('click', e => { if (!picker.contains(e.target) && e.target !== toggleBtn) picker.classList.remove('visible'); });
             }
             
-            // --- Data Management: Import/Export ---
             const blobToBase64 = blob => new Promise((resolve, reject) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob); });
             const base64ToBlob = base64 => fetch(base64).then(res => res.blob());
             document.getElementById('export-btn').addEventListener('click', async () => { const songs = await db.songs.toArray(), settings = await db.settings.toArray(), exportData = { songs: [], settings: [] }; for (const song of songs) exportData.songs.push({ ...song, audioFile: await blobToBase64(song.audioFile), imageFile: song.imageFile ? await blobToBase64(song.imageFile) : null }); for (const setting of settings) exportData.settings.push({ ...setting, value: setting.value instanceof Blob ? await blobToBase64(setting.value) : setting.value }); const jsonString = JSON.stringify(exportData), blob = new Blob([jsonString], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = `music-os-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(url); });
             const importFileInput = document.getElementById('import-file-input'); document.getElementById('import-btn').addEventListener('click', () => importFileInput.click());
             importFileInput.addEventListener('change', e => { const file = e.target.files[0]; if (!file || !confirm('确定导入吗？这将覆盖所有现有数据！')) return; const reader = new FileReader(); reader.onload = async (event) => { try { const importData = JSON.parse(event.target.result); await db.transaction('rw', db.songs, db.settings, async () => { await db.songs.clear(); await db.settings.clear(); const songsToPut = []; for (const song of importData.songs) songsToPut.push({ ...song, audioFile: await base64ToBlob(song.audioFile), imageFile: song.imageFile ? await base64ToBlob(song.imageFile) : null }); await db.songs.bulkPut(songsToPut); const settingsToPut = []; for (const setting of importData.settings) settingsToPut.push({ ...setting, value: typeof setting.value === 'string' && setting.value.startsWith('data:') ? await base64ToBlob(setting.value) : setting.value }); await db.settings.bulkPut(settingsToPut); }); alert('导入成功！应用将重新加载。'); location.reload(); } catch (err) { alert('导入失败！' + err); } }; reader.readAsText(file); });
             
-            // --- Image Cropper Logic ---
             async function initCropper(file, previewElementId) {
                 const modal = document.getElementById('crop-modal-overlay'), image = document.getElementById('cropper-image');
                 const [w, h] = await Promise.all([db.settings.get('coverWidth'), db.settings.get('coverHeight')]);
@@ -232,9 +257,8 @@
             document.getElementById('image-file-input').addEventListener('change', e => { if (e.target.files[0]) initCropper(e.target.files[0], 'add-image-preview'); });
             document.getElementById('edit-image-file-input').addEventListener('change', e => { if (e.target.files[0]) initCropper(e.target.files[0], 'edit-image-preview'); });
 
-            // --- Miscellaneous & Initialization ---
             document.getElementById('display-picture-container').addEventListener('click', () => { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = async e => { if (e.target.files[0]) { await db.settings.put({ key: 'displayPicture', value: e.target.files[0] }); applyAllSettings(); } }; input.click(); });
-            const modal = document.getElementById('announcement-modal'); document.getElementById('announcement-btn').addEventListener('click', () => modal.style.display = 'flex'); document.getElementById('close-modal-btn').addEventListener('click', () => modal.style.display = 'none');
+            
             async function initialize() { setupNavigation(); setupColorPicker(); setInterval(updateClock, 1000); updateClock(); const settingsExist = await db.settings.get('appConfig'); if (!settingsExist) { await db.settings.put({ key: 'appConfig', value: defaultAppConfig }); } await applyAllSettings(); await renderPlaylist(); navigateTo('desktop-view'); }
             initialize();
         });
