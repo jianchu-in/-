@@ -1,3 +1,5 @@
+--- START OF FILE index.html ---
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="https://chatbotcos.weixin.qq.com/chatbot/30-openaiassets_0fcbc917653b4f5350f3290e2343fdaf_469401762766962387.jpg">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -45,13 +47,47 @@
         .playlist-item { display: flex; align-items: center; padding: 10px; border-radius: 8px; transition: background-color 0.2s; } .playlist-item:hover { background-color: var(--bg-tertiary); }
         .playlist-item img { width: 50px; height: 50px; border-radius: 4px; margin-right: 15px; object-fit: cover; background-color: #333; }
         .playlist-item .song-info { flex-grow: 1; cursor: pointer; } .playlist-item .actions { display: flex; } .playlist-item .actions button { background: none; border: none; font-size: 20px; padding: 10px; color: var(--text-secondary); }
-        #player-view { background-color: #000; background-size: cover; background-position: center; display: flex; flex-direction: column; padding: 20px; padding-bottom: 15vh; }
-        .player-top-bar { display: flex; justify-content: space-between; align-items: center; }
-        .player-top-bar button { color: white; text-shadow: 0 0 5px black;}
-        .player-top-bar .right-controls { display: flex; align-items: center; gap: 10px; }
-        #album-art { object-fit: cover; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); margin-top: 30px; }
-        .lyric-bubble { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px 20px; margin-bottom: 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .lyric-bubble p { color: var(--lyric-color); font-size: calc(var(--global-font-size) + 2px); }
+        #player-view { background-color: #000; background-size: cover; background-position: center; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; transition: transform 0.4s ease; }
+        #player-view.rotated { transform: rotate(90deg); transform-origin: center; width: 100vh; height: 100vw; top: 50%; left: 50%; margin-top: -50vw; margin-left: -50vh; }
+        .player-top-bar { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .player-top-bar button { color: white; text-shadow: 0 0 5px black; background: none; border: none; font-size: 24px;}
+        .player-top-bar .right-controls { display: flex; align-items: center; gap: 10px; position: relative; }
+        .player-top-bar .right-controls button {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: none;
+            color: #fff;
+            backdrop-filter: blur(5px);
+        }
+        #player-content-wrapper { position: relative; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
+        #album-art { position: absolute; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); cursor: grab; touch-action: none; }
+        #album-art.dragging { cursor: grabbing; box-shadow: 0 12px 35px rgba(0,0,0,0.7); }
+        .lyric-bubble { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: grab; z-index: 10; touch-action: none; text-align: center; }
+        .lyric-bubble.dragging { cursor: grabbing; }
+        .lyric-bubble p { margin: 0; color: var(--lyric-color); font-size: calc(var(--global-font-size) + 2px); }
+        .player-controls { width: 100%; padding: 10px 0; color: white; flex-shrink: 0; }
+        .progress-bar-container { display: flex; align-items: center; gap: 10px; width: 100%; font-size: 12px; }
+        #progress-bar { flex-grow: 1; -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 5px; outline: none; transition: opacity .2s; }
+        #progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 15px; height: 15px; background: #fff; border-radius: 50%; cursor: pointer; }
+        .main-controls { display: flex; justify-content: center; align-items: center; margin-top: 15px; }
+        .main-controls button { background: none; border: none; display: flex; align-items: center; justify-content: center; padding: 0; }
+        #play-pause-btn { background-color: rgba(255, 255, 255, 0.9); color: #000; border-radius: 50%; width: 55px; height: 55px; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: background-color 0.3s, color 0.3s; }
+        body.light-mode #play-pause-btn { background-color: rgba(0, 0, 0, 0.7); color: #fff; }
+        /* MODIFIED: Menu width and styling for new section */
+        #player-settings-menu { display: none; position: absolute; top: 110%; right: 0; background: var(--bg-tertiary); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); padding: 10px; width: 180px; z-index: 20; }
+        #player-settings-menu.visible { display: block; }
+        #player-settings-menu a { display: block; padding: 8px 12px; color: var(--text-primary); text-decoration: none; border-radius: 4px; }
+        #player-settings-menu a:hover { background: var(--border-color); }
+        .menu-section { padding-top: 8px; margin-top: 8px; border-top: 1px solid var(--border-color); }
+        .menu-section-title { font-size: 12px; color: var(--text-secondary); padding: 0 12px 4px; }
+        .speed-control { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; }
+        #playback-speed { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; }
         #color-picker { display: none; position: absolute; top: 60px; right: 20px; background-color: #282828; padding: 10px; border-radius: 8px; grid-template-columns: repeat(4, 1fr); gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 20;}
         #color-picker.visible { display: grid; }
         .color-swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; } .color-swatch:hover { border-color: white; }
@@ -82,7 +118,64 @@
     <div id="playlist-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="playlist-view-title">播放列表</h1></div><div class="app-content"><ul id="playlist-container"></ul></div></div>
     <div id="beautify-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="beautify-view-title">美化</h1></div><div class="app-content"><div class="beautify-section"><h2>主题模式</h2><div style="display:flex;align-items:center;gap:10px;"><span>夜间</span><label class="switch"><input type="checkbox" id="theme-switch"><span class="slider"></span></label><span>日间</span></div></div><div class="beautify-section"><h2>应用定制</h2><div id="app-customize-container"></div></div><div class="beautify-section"><h2>播放器界面</h2><div class="form-group"><label>全局背景</label><input type="file" id="player-bg-input" accept="image/*"></div><div class="form-group"><label>封面尺寸 (px)</label><div class="input-with-button"><input type="number" id="cover-width-input" placeholder="宽度"><input type="number" id="cover-height-input" placeholder="高度"><button id="save-cover-size-btn">保存</button></div></div></div><div class="beautify-section"><h2>桌面与字体</h2><div class="form-group"><label>全局背景</label><input type="file" id="bg-file-input" accept="image/*"></div><div class="form-group"><label>展示区图片</label><input type="file" id="dp-file-input" accept="image/*"></div><div class="form-group"><label>字体URL</label><div class="input-with-button"><input type="text" id="font-url-input" placeholder="https://.../font.woff"><button id="save-font-btn">保存</button></div></div><div class="form-group"><label>全局字体大小</label><div class="font-size-control"><input type="range" id="font-size-slider" min="12" max="22" step="1"><span id="font-size-value">16px</span></div></div></div></div></div>
     <div id="data-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="data-view-title">数据管理</h1></div><div class="app-content"><p style="color: var(--text-secondary); line-height: 1.6; margin-top: 0;">这里是您的数据中心。您可以将所有歌曲、美化设置和个人配置导出为一个单一的 <code>.zip</code> 备份文件。 这个文件可以在任何设备上通过“导入”功能恢复您的整个播放器，实现无缝迁移和数据保护。</p><div class="form-group"><label>导出</label><button id="export-btn" class="action-button">导出全部数据</button></div><div class="form-group"><label>导入</label><button id="import-btn" class="action-button">导入备份文件 (覆盖)</button><input type="file" id="import-file-input" accept=".zip" style="display:none;"></div></div></div>
-    <div id="player-view" class="view"><div class="player-top-bar"><button class="back-btn" data-target="playlist-view">‹</button><div class="right-controls"><button id="set-song-bg-btn">🖼️</button><button id="toggle-color-picker-btn">🎨</button></div></div><div id="color-picker"></div><div style="flex-grow:1;display:flex;justify-content:center;align-items:center;padding-top: 30px;"><img id="album-art" alt="Art"></div><div class="lyric-bubble"><p id="lyric-display">...</p></div><audio id="audio-player" controls></audio><input type="file" id="song-bg-input" accept="image/*" style="display:none;"></div>
+
+    <!-- MODIFIED: Player View structure with Sleep Timer Menu -->
+    <div id="player-view" class="view">
+        <div class="player-top-bar">
+            <button class="back-btn" data-target="playlist-view">‹</button>
+            <div class="right-controls">
+                <button id="set-song-bg-btn">🖼️</button>
+                <button id="toggle-color-picker-btn">🎨</button>
+                <button id="rotate-screen-btn">🔄</button>
+                <button id="player-settings-btn">⋮</button>
+                <div id="player-settings-menu">
+                    <a id="download-song-link" download>下载音频</a>
+                    <div class="speed-control">
+                        <span>速度:</span>
+                        <select id="playback-speed">
+                            <option value="0.5">0.5x</option>
+                            <option value="1" selected>1.0x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2.0">2.0x</option>
+                        </select>
+                    </div>
+                    <!-- NEW: Sleep Timer Section -->
+                    <div class="menu-section">
+                        <div class="menu-section-title">睡眠定时器</div>
+                        <a href="#" data-time="0">关闭</a>
+                        <a href="#" data-time="15">15 分钟后</a>
+                        <a href="#" data-time="30">30 分钟后</a>
+                        <a href="#" data-time="60">60 分钟后</a>
+                        <a href="#" data-time="-1">当前歌曲播放完后</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="color-picker"></div>
+        
+        <div id="player-content-wrapper">
+            <img id="album-art" alt="Art">
+            <div class="lyric-bubble">
+                <p id="lyric-display">...</p>
+            </div>
+        </div>
+
+        <div class="player-controls">
+            <div class="progress-bar-container">
+                <span id="current-time">00:00</span>
+                <input type="range" id="progress-bar" value="0" step="1">
+                <span id="duration-time">00:00</span>
+            </div>
+            <div class="main-controls">
+                <button id="play-pause-btn">▶</button>
+            </div>
+        </div>
+        
+        <audio id="audio-player" style="display: none;"></audio>
+        <input type="file" id="song-bg-input" accept="image/*" style="display:none;">
+    </div>
+    
     <div id="announcement-modal" class="modal-overlay"><div class="modal-content"><h2>公告</h2><p>作者：末<br>禁止二改。网站初心就是想让乙抓妹更好的体验和方便，一切用户行为都与作者无关，仅供娱乐交流<br><br>小红书：末，id7504217376<br>有问题可询问，或者有什么许愿的功能也可以，<br>后续会有些小更新，请支持正版乙抓</p><button id="close-modal-btn">关闭</button></div></div>
     <div id="crop-modal-overlay" class="modal-overlay"><div id="crop-modal-content"><div id="cropper-container"><img id="cropper-image"></div><div class="cropper-buttons"><button id="cancel-crop-btn">取消</button><button id="confirm-crop-btn">裁剪</button></div></div></div>
 
@@ -92,6 +185,8 @@
             db.version(3).stores({ songs: '++id, title', settings: 'key' });
 
             let currentLyrics = [], cropper, croppedImageBlob = null, lastSaveTime = 0;
+            // NEW: Sleep timer variables
+            let sleepTimerId = null, stopAtSongEnd = false;
             let tempObjectURLs = { player: [], playlist: [], beautify: [], config: [] };
             const defaultCover = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzg4OCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm9undQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIj48L2NpcmNsZT48cGF0aCBkPSJtMTYgOCAtOCAzIDggMyB6IiAvPjwvZz48L3N2Zz4=';
             let appConfig = [];
@@ -112,7 +207,13 @@
                     const announcementBtn = e.target.closest('#announcement-btn');
                     const closeModalBtn = e.target.closest('#close-modal-btn');
                     if (appIcon) { e.preventDefault(); navigateTo(appIcon.dataset.target); if (appIcon.dataset.target === 'beautify-view') loadBeautifySettings(); }
-                    if (backBtn) { if (document.getElementById('player-view').classList.contains('active')) { document.getElementById('audio-player').pause(); } navigateTo(backBtn.dataset.target); }
+                    if (backBtn) { 
+                        if (document.getElementById('player-view').classList.contains('active')) { 
+                            document.getElementById('audio-player').pause(); 
+                            document.getElementById('player-view').classList.remove('rotated');
+                        }
+                        navigateTo(backBtn.dataset.target); 
+                    }
                     if (announcementBtn) { document.getElementById('announcement-modal').style.display = 'flex'; }
                     if (closeModalBtn) { e.target.closest('.modal-overlay').style.display = 'none'; }
                 });
@@ -272,15 +373,39 @@
                 const imageUrl = song.imageFile ? URL.createObjectURL(song.imageFile) : defaultCover;
                 tempObjectURLs.player.push(imageUrl);
                 const audioPlayer = document.getElementById('audio-player');
-                if (song.audioType === 'url') { audioPlayer.src = song.audioSource; } 
-                else { const audioUrl = URL.createObjectURL(song.audioSource || song.audioFile); tempObjectURLs.player.push(audioUrl); audioPlayer.src = audioUrl; }
+                const downloadLink = document.getElementById('download-song-link');
+
+                if (song.audioType === 'url') { 
+                    audioPlayer.src = song.audioSource;
+                    downloadLink.href = song.audioSource;
+                    downloadLink.target = '_blank';
+                    downloadLink.download = '';
+                } else { 
+                    const audioUrl = URL.createObjectURL(song.audioSource || song.audioFile); 
+                    tempObjectURLs.player.push(audioUrl); 
+                    audioPlayer.src = audioUrl;
+                    downloadLink.href = audioUrl;
+                    downloadLink.target = '_self';
+                    const audioFile = song.audioSource || song.audioFile;
+                    downloadLink.download = audioFile.name || `${song.title}.mp3`;
+                }
                 const albumArt = document.getElementById('album-art');
+                const lyricBubble = document.querySelector('.lyric-bubble');
                 const w = coverWidth?.value, h = coverHeight?.value;
                 albumArt.style.width = w ? `${w}px` : '70vw';
                 albumArt.style.height = h ? `${h}px` : '70vw';
                 albumArt.style.maxWidth = w ? `${w}px` : '300px';
                 albumArt.style.maxHeight = h ? `${h}px` : '300px';
                 albumArt.src = imageUrl;
+
+                // MODIFIED: Reset positions and data attributes
+                albumArt.style.transform = '';
+                delete albumArt.dataset.dragX;
+                delete albumArt.dataset.dragY;
+                lyricBubble.style.transform = 'translateX(-50%)';
+                delete lyricBubble.dataset.dragX;
+                delete lyricBubble.dataset.dragY;
+
                 audioPlayer.onloadedmetadata = () => { if (startTime > 0 && startTime < audioPlayer.duration) audioPlayer.currentTime = startTime; audioPlayer.play(); };
                 parseLyrics(song.lyrics); navigateTo('player-view');
             }
@@ -300,8 +425,176 @@
                 }
             }
             const audioPlayer = document.getElementById('audio-player');
-            audioPlayer.addEventListener('timeupdate', updatePlayerState);
-            audioPlayer.addEventListener('ended', () => { db.settings.delete('lastPlaybackState'); });
+            audioPlayer.addEventListener('timeupdate', () => {
+                updatePlayerState();
+                const progressBar = document.getElementById('progress-bar');
+                if (!isNaN(audioPlayer.duration)) {
+                    progressBar.value = audioPlayer.currentTime;
+                    document.getElementById('current-time').textContent = formatTime(audioPlayer.currentTime);
+                }
+            });
+            audioPlayer.addEventListener('loadedmetadata', () => {
+                const progressBar = document.getElementById('progress-bar');
+                progressBar.max = audioPlayer.duration;
+                document.getElementById('duration-time').textContent = formatTime(audioPlayer.duration);
+            });
+            audioPlayer.addEventListener('play', () => { document.getElementById('play-pause-btn').innerHTML = '❚❚'; });
+            audioPlayer.addEventListener('pause', () => { document.getElementById('play-pause-btn').innerHTML = '▶'; });
+            // MODIFIED: 'ended' event now handles sleep timer
+            audioPlayer.addEventListener('ended', () => { 
+                db.settings.delete('lastPlaybackState');
+                if (stopAtSongEnd) {
+                    audioPlayer.pause();
+                    stopAtSongEnd = false;
+                    updateSleepTimerUI();
+                }
+            });
+
+            function formatTime(seconds) {
+                const min = Math.floor(seconds / 60);
+                const sec = Math.floor(seconds % 60);
+                return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+            }
+
+            function setupCustomControls() {
+                const playPauseBtn = document.getElementById('play-pause-btn');
+                const progressBar = document.getElementById('progress-bar');
+                const playerSettingsBtn = document.getElementById('player-settings-btn');
+                const playerSettingsMenu = document.getElementById('player-settings-menu');
+                const playbackSpeedSelect = document.getElementById('playback-speed');
+
+                playPauseBtn.addEventListener('click', () => {
+                    if (audioPlayer.paused) { audioPlayer.play(); } else { audioPlayer.pause(); }
+                });
+                progressBar.addEventListener('input', () => { audioPlayer.currentTime = progressBar.value; });
+
+                playerSettingsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    playerSettingsMenu.classList.toggle('visible');
+                });
+                document.addEventListener('click', (e) => {
+                    if (!playerSettingsMenu.contains(e.target) && e.target !== playerSettingsBtn) {
+                        playerSettingsMenu.classList.remove('visible');
+                    }
+                });
+                playbackSpeedSelect.addEventListener('change', (e) => {
+                    audioPlayer.playbackRate = parseFloat(e.target.value);
+                });
+            }
+
+            document.getElementById('rotate-screen-btn').addEventListener('click', () => {
+                document.getElementById('player-view').classList.toggle('rotated');
+            });
+            
+            // MODIFIED: Draggable function with improved logic to prevent jumps
+            function setupDraggableElement(element, container) {
+                let isDragging = false, startEventX, startEventY, startDragX, startDragY;
+
+                const dragStart = (e) => {
+                    if (e.target.closest(`#${element.id}`)) {
+                        isDragging = true;
+                        element.classList.add('dragging');
+                        const event = e.type === 'touchstart' ? e.touches[0] : e;
+                        startEventX = event.clientX;
+                        startEventY = event.clientY;
+                        
+                        startDragX = parseFloat(element.dataset.dragX || 0);
+                        startDragY = parseFloat(element.dataset.dragY || 0);
+
+                        container.addEventListener('mousemove', drag);
+                        container.addEventListener('touchmove', drag, { passive: false });
+                        window.addEventListener('mouseup', dragEnd);
+                        window.addEventListener('touchend', dragEnd);
+                    }
+                };
+
+                const drag = (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const event = e.type === 'touchmove' ? e.touches[0] : e;
+                    const deltaX = event.clientX - startEventX;
+                    const deltaY = event.clientY - startEventY;
+                    let newX, newY;
+
+                    if (container.classList.contains('rotated')) {
+                        newX = startDragX - deltaY;
+                        newY = startDragY + deltaX;
+                    } else {
+                        newX = startDragX + deltaX;
+                        newY = startDragY + deltaY;
+                    }
+                    
+                    let transformString = `translate3d(${newX}px, ${newY}px, 0)`;
+                    if (element.id === 'lyric-bubble') {
+                         transformString = `translateX(-50%) ${transformString}`;
+                    }
+                    element.style.transform = transformString;
+                };
+
+                const dragEnd = (e) => {
+                    if (isDragging) {
+                        isDragging = false;
+                        element.classList.remove('dragging');
+                        
+                        const event = e.type === 'touchend' ? e.changedTouches[0] : e;
+                        const deltaX = event.clientX - startEventX;
+                        const deltaY = event.clientY - startEventY;
+
+                        if (container.classList.contains('rotated')) {
+                            element.dataset.dragX = startDragX - deltaY;
+                            element.dataset.dragY = startDragY + deltaX;
+                        } else {
+                            element.dataset.dragX = startDragX + deltaX;
+                            element.dataset.dragY = startDragY + deltaY;
+                        }
+
+                        container.removeEventListener('mousemove', drag);
+                        container.removeEventListener('touchmove', drag);
+                        window.removeEventListener('mouseup', dragEnd);
+                        window.removeEventListener('touchend', dragEnd);
+                    }
+                };
+
+                container.addEventListener('mousedown', dragStart);
+                container.addEventListener('touchstart', dragStart, { passive: false });
+            }
+            
+            // NEW: Sleep Timer Logic
+            function updateSleepTimerUI() {
+                const settingsBtn = document.getElementById('player-settings-btn');
+                if (sleepTimerId || stopAtSongEnd) {
+                    settingsBtn.textContent = '⏰';
+                } else {
+                    settingsBtn.textContent = '⋮';
+                }
+            }
+
+            function setupSleepTimer() {
+                const menu = document.getElementById('player-settings-menu');
+                menu.addEventListener('click', (e) => {
+                    const target = e.target.closest('[data-time]');
+                    if (!target) return;
+                    
+                    e.preventDefault();
+                    clearTimeout(sleepTimerId);
+                    sleepTimerId = null;
+                    stopAtSongEnd = false;
+
+                    const time = parseInt(target.dataset.time, 10);
+                    if (time > 0) {
+                        sleepTimerId = setTimeout(() => {
+                            audioPlayer.pause();
+                            sleepTimerId = null;
+                            updateSleepTimerUI();
+                        }, time * 60 * 1000);
+                    } else if (time === -1) {
+                        stopAtSongEnd = true;
+                    }
+                    
+                    updateSleepTimerUI();
+                    menu.classList.remove('visible');
+                });
+            }
 
             function setupColorPicker() {
                 const picker = document.getElementById('color-picker'), toggleBtn = document.getElementById('toggle-color-picker-btn');
@@ -312,7 +605,6 @@
                 document.addEventListener('click', e => { if (!picker.contains(e.target) && e.target !== toggleBtn) picker.classList.remove('visible'); });
             }
             
-            // ★ FIX: Switched to robust JSZip import/export
             document.getElementById('export-btn').addEventListener('click', async () => {
                 const exportBtn = document.getElementById('export-btn');
                 try {
@@ -334,7 +626,7 @@
                                 songMeta.audioSource = fileName;
                             }
                         }
-                        if (song.imageFile) { const fileName = `${song.id}_cover.jpg`; filesFolder.file(fileName, song.imageFile); songMeta.imageFile = fileName; }
+                        if (song.imageFile) { const fileName = `${song.id}_cover.gif`; filesFolder.file(fileName, song.imageFile); songMeta.imageFile = fileName; }
                         if (song.backgroundFile) { const fileName = `${song.id}_bg.jpg`; filesFolder.file(fileName, song.backgroundFile); songMeta.backgroundFile = fileName; }
                         delete songMeta.audioFile;
                         metadata.songs.push(songMeta);
@@ -381,7 +673,6 @@
                     
                     const filesFolder = zip.folder('files');
                     
-                    // Pre-process files outside of the transaction
                     for (const songMeta of metadata.songs) {
                         if (songMeta.audioType === 'file' && songMeta.audioSource) songMeta.audioSource = await filesFolder.file(songMeta.audioSource).async('blob');
                         if (songMeta.imageFile) songMeta.imageFile = await filesFolder.file(songMeta.imageFile).async('blob');
@@ -393,7 +684,6 @@
                         }
                     }
 
-                    // Perform database operations within a transaction
                     await db.transaction('rw', db.songs, db.settings, async () => {
                         await db.songs.clear();
                         await db.settings.clear();
@@ -410,6 +700,20 @@
                 }
             });
             
+            // MODIFIED: Cropper logic now handles GIFs
+            function handleImageSelection(file, previewElementId, isEditing) {
+                if (file.type === 'image/gif') {
+                    croppedImageBlob = file;
+                    const preview = document.getElementById(previewElementId);
+                    preview.src = URL.createObjectURL(file);
+                    preview.style.display = 'block';
+                    document.getElementById('crop-modal-overlay').style.display = 'none';
+                    if (cropper) cropper.destroy();
+                } else {
+                    initCropper(file, previewElementId);
+                }
+            }
+
             async function initCropper(file, previewElementId) {
                 const modal = document.getElementById('crop-modal-overlay'), image = document.getElementById('cropper-image');
                 const [w, h] = await Promise.all([db.settings.get('coverWidth'), db.settings.get('coverHeight')]);
@@ -420,8 +724,9 @@
                 document.getElementById('confirm-crop-btn').onclick = () => { cropper.getCroppedCanvas().toBlob(blob => { croppedImageBlob = blob; const preview = document.getElementById(previewElementId); preview.src = URL.createObjectURL(blob); preview.style.display = 'block'; modal.style.display = 'none'; }); };
                 document.getElementById('cancel-crop-btn').onclick = () => { modal.style.display = 'none'; cropper.destroy(); };
             }
-            document.getElementById('image-file-input').addEventListener('change', e => { if (e.target.files[0]) initCropper(e.target.files[0], 'add-image-preview'); });
-            document.getElementById('edit-image-file-input').addEventListener('change', e => { if (e.target.files[0]) initCropper(e.target.files[0], 'edit-image-preview'); });
+
+            document.getElementById('image-file-input').addEventListener('change', e => { if (e.target.files[0]) handleImageSelection(e.target.files[0], 'add-image-preview'); });
+            document.getElementById('edit-image-file-input').addEventListener('change', e => { if (e.target.files[0]) handleImageSelection(e.target.files[0], 'edit-image-preview'); });
 
             const setSongBgBtn = document.getElementById('set-song-bg-btn');
             const songBgInput = document.getElementById('song-bg-input');
@@ -440,7 +745,27 @@
 
             document.getElementById('display-picture-container').addEventListener('click', () => { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = async e => { if (e.target.files[0]) { await db.settings.put({ key: 'displayPicture', value: e.target.files[0] }); renderUI(); } }; input.click(); });
             
-            async function initialize() { setupNavigation(); setupColorPicker(); setInterval(updateClock, 1000); updateClock(); const settingsExist = await db.settings.get('appConfig'); if (!settingsExist) { await db.settings.put({ key: 'appConfig', value: defaultAppConfig }); } await renderUI(); await renderPlaylist(); navigateTo('desktop-view'); }
+            async function initialize() { 
+                setupNavigation(); 
+                setupColorPicker();
+                setupCustomControls();
+                setupSleepTimer();
+                
+                const playerView = document.getElementById('player-view');
+                const lyricBubble = document.querySelector('.lyric-bubble');
+                lyricBubble.id = 'lyric-bubble';
+                const albumArt = document.getElementById('album-art');
+                setupDraggableElement(lyricBubble, playerView);
+                setupDraggableElement(albumArt, playerView);
+                
+                setInterval(updateClock, 1000); 
+                updateClock(); 
+                const settingsExist = await db.settings.get('appConfig'); 
+                if (!settingsExist) { await db.settings.put({ key: 'appConfig', value: defaultAppConfig }); } 
+                await renderUI(); 
+                await renderPlaylist(); 
+                navigateTo('desktop-view'); 
+            }
             initialize();
         });
     </script>
