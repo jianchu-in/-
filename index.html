@@ -1,3 +1,5 @@
+--- START OF FILE index.html ---
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="https://chatbotcos.weixin.qq.com/chatbot/30-openaiassets_0fcbc917653b4f5350f3290e2343fdaf_469401762766962387.jpg">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -59,7 +61,7 @@
         #create-folder-btn { margin-left: auto; background: none; border: none; font-size: 24px; color: var(--text-primary); }
 
         #player-view { background-color: #000; background-size: cover; background-position: center; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; transition: transform 0.4s ease; }
-        #player-view.rotated { transform: rotate(90deg); transform-origin: center; width: 100vh; height: 100vw; top: 50%; left: 50%; margin-top: -50vw; margin-left: -50vh; }
+        
         .player-top-bar { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .player-top-bar button { color: white; text-shadow: 0 0 5px black; background: none; border: none; font-size: 24px;}
         .player-top-bar .right-controls { display: flex; align-items: center; gap: 10px; position: relative; }
@@ -77,11 +79,37 @@
             backdrop-filter: blur(5px);
         }
         #player-content-wrapper { position: relative; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
-        #album-art { position: absolute; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); cursor: grab; touch-action: none; }
-        #album-art.dragging { cursor: grabbing; box-shadow: 0 12px 35px rgba(0,0,0,0.7); }
-        .lyric-bubble { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: grab; z-index: 10; touch-action: none; text-align: center; }
-        .lyric-bubble.dragging { cursor: grabbing; }
+        #album-art { position: absolute; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); cursor: grab; touch-action: none; transition: transform 0.1s; }
+        #album-art.dragging { cursor: grabbing; box-shadow: 0 12px 35px rgba(0,0,0,0.7); transition: none; }
+        
+        .lyric-bubble { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: grab; z-index: 10; touch-action: none; text-align: center; transition: transform 0.1s; }
+        .lyric-bubble.dragging { cursor: grabbing; transition: none; }
         .lyric-bubble p { margin: 0; color: var(--lyric-color); font-size: calc(var(--global-font-size) + 2px); }
+        
+        /* New Song Title Box */
+        #song-title-box {
+            position: absolute;
+            top: 15%; /* Default position above lyrics/art usually */
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: white;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            cursor: grab;
+            z-index: 9;
+            touch-action: none;
+            max-width: 80%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: transform 0.1s;
+        }
+        #song-title-box.dragging { cursor: grabbing; transition: none; }
+
         .player-controls { width: 100%; padding: 10px 0; color: white; flex-shrink: 0; }
         .progress-bar-container { display: flex; align-items: center; gap: 10px; width: 100%; font-size: 12px; }
         #progress-bar { flex-grow: 1; -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 5px; outline: none; transition: opacity .2s; }
@@ -121,6 +149,46 @@
         .source-switcher { display: flex; gap: 20px; margin-bottom: 10px; }
         .hidden-input { display: none; }
         .import-vtt-btn { margin-bottom: 5px; font-size: 12px; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 5px 10px; border-radius: 4px; }
+
+        /* Full Page Lyrics Modal */
+        #full-lyrics-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        #full-lyrics-modal.active { transform: translateY(0); }
+        .full-lyrics-header { padding: 20px; display: flex; justify-content: flex-end; }
+        .close-lyrics-btn { background: none; border: none; color: white; font-size: 30px; opacity: 0.7; }
+        .full-lyrics-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            text-align: center;
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+        }
+        .full-lyric-line {
+            padding: 12px 5px;
+            color: #888;
+            font-size: 18px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .full-lyric-line.active {
+            color: var(--lyric-color);
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -152,7 +220,7 @@
             <div class="right-controls">
                 <button id="set-song-bg-btn">🖼️</button>
                 <button id="toggle-color-picker-btn">🎨</button>
-                <button id="rotate-screen-btn">🔄</button>
+                <button id="full-lyrics-btn">📜</button>
                 <button id="player-settings-btn">⋮</button>
                 <div id="player-settings-menu">
                     <a id="download-song-link" download>下载音频</a>
@@ -183,6 +251,7 @@
         <div id="color-picker"></div>
         
         <div id="player-content-wrapper">
+            <div id="song-title-box">Unknown Song</div>
             <img id="album-art" alt="Art">
             <div class="lyric-bubble">
                 <p id="lyric-display">...</p>
@@ -206,8 +275,18 @@
         <input type="file" id="song-bg-input" accept="image/*" style="display:none;">
         <input type="file" id="vtt-import-input" accept=".vtt,.srt,.lrc" style="display:none;">
     </div>
+
+    <!-- Full Page Lyrics Modal -->
+    <div id="full-lyrics-modal">
+        <div class="full-lyrics-header">
+            <button class="close-lyrics-btn">×</button>
+        </div>
+        <div class="full-lyrics-container" id="full-lyrics-list">
+            <!-- Lines generated by JS -->
+        </div>
+    </div>
     
-    <div id="announcement-modal" class="modal-overlay"><div class="modal-content"><h2>公告</h2><p>作者：末<br>禁止二改。网站初心就是想让乙抓妹更好的体验和方便，一切用户行为都与作者无关，仅供娱乐交流<br><br>小红书：末，id7504217376<br>有问题可询问，或者有什么许愿的功能也可以，<br>后续会有些小更新，请支持正版乙抓。<br>2025/11/26/更新1.增加音频文件夹分类，长按文件夹可重新命名2.字幕支持选择vtt/lrc格式导入，导入后歌词字幕输入框自动展示歌词3.播放界面增加上一首和下一首按钮，点击右上角三个点在睡眠定时器的下面打开连续播放</p><button id="close-modal-btn">关闭</button></div></div>
+    <div id="announcement-modal" class="modal-overlay"><div class="modal-content"><h2>公告</h2><p>作者：末<br>禁止二改。网站初心就是想让乙抓妹更好的体验和方便，一切用户行为都与作者无关，仅供娱乐交流<br><br>小红书：末，id7504217376<br>有问题可询问，或者有什么许愿的功能也可以，<br>后续会有些小更新，请支持正版乙抓</p><button id="close-modal-btn">关闭</button></div></div>
     <div id="crop-modal-overlay" class="modal-overlay"><div id="crop-modal-content"><div id="cropper-container"><img id="cropper-image"></div><div class="cropper-buttons"><button id="cancel-crop-btn">取消</button><button id="confirm-crop-btn">裁剪</button></div></div></div>
 
     <script>
@@ -265,7 +344,6 @@
 
                         if (document.getElementById('player-view').classList.contains('active')) { 
                             document.getElementById('audio-player').pause(); 
-                            document.getElementById('player-view').classList.remove('rotated');
                         }
                         navigateTo(target); 
                     }
@@ -594,7 +672,14 @@
                 revokeURLs('player');
                 const playerView = document.getElementById('player-view');
                 playerView.dataset.currentSongId = id;
-                const [song, globalPlayerBg, coverWidth, coverHeight, lastState] = await Promise.all([db.songs.get(id), db.settings.get('playerBg'), db.settings.get('coverWidth'), db.settings.get('coverHeight'), db.settings.get('lastPlaybackState')]);
+                const [song, globalPlayerBg, coverWidth, coverHeight, lastState, playerLayout] = await Promise.all([
+                    db.songs.get(id), 
+                    db.settings.get('playerBg'), 
+                    db.settings.get('coverWidth'), 
+                    db.settings.get('coverHeight'), 
+                    db.settings.get('lastPlaybackState'),
+                    db.settings.get('playerLayout')
+                ]);
                 if (!song) return;
                 let startTime = 0;
                 if (lastState && lastState.value.songId === id) startTime = lastState.value.currentTime;
@@ -605,6 +690,14 @@
                 tempObjectURLs.player.push(imageUrl);
                 const audioPlayer = document.getElementById('audio-player');
                 const downloadLink = document.getElementById('download-song-link');
+
+                // Song Title Display Logic
+                const songTitleBox = document.getElementById('song-title-box');
+                let displayTitle = song.title;
+                if (song.audioType === 'file' && song.audioSource && song.audioSource.name) {
+                    displayTitle = song.audioSource.name;
+                }
+                songTitleBox.textContent = displayTitle;
 
                 if (song.audioType === 'url') { 
                     audioPlayer.src = song.audioSource;
@@ -629,24 +722,94 @@
                 albumArt.style.maxHeight = h ? `${h}px` : '300px';
                 albumArt.src = imageUrl;
 
-                albumArt.style.transform = '';
-                delete albumArt.dataset.dragX;
-                delete albumArt.dataset.dragY;
-                lyricBubble.style.transform = 'translateX(-50%)';
-                delete lyricBubble.dataset.dragX;
-                delete lyricBubble.dataset.dragY;
+                // Load Saved Positions
+                if (playerLayout && playerLayout.value) {
+                    const l = playerLayout.value;
+                    if(l.art) {
+                        albumArt.style.transform = `translate3d(${l.art.x}px, ${l.art.y}px, 0)`;
+                        albumArt.dataset.dragX = l.art.x;
+                        albumArt.dataset.dragY = l.art.y;
+                    } else {
+                        albumArt.style.transform = ''; delete albumArt.dataset.dragX; delete albumArt.dataset.dragY;
+                    }
+                    if(l.lyric) {
+                        lyricBubble.style.transform = `translateX(-50%) translate3d(${l.lyric.x}px, ${l.lyric.y}px, 0)`;
+                        lyricBubble.dataset.dragX = l.lyric.x;
+                        lyricBubble.dataset.dragY = l.lyric.y;
+                    } else {
+                         lyricBubble.style.transform = 'translateX(-50%)'; delete lyricBubble.dataset.dragX; delete lyricBubble.dataset.dragY;
+                    }
+                    if(l.title) {
+                        songTitleBox.style.transform = `translateX(-50%) translate3d(${l.title.x}px, ${l.title.y}px, 0)`;
+                        songTitleBox.dataset.dragX = l.title.x;
+                        songTitleBox.dataset.dragY = l.title.y;
+                    } else {
+                        songTitleBox.style.transform = 'translateX(-50%)'; delete songTitleBox.dataset.dragX; delete songTitleBox.dataset.dragY;
+                    }
+                } else {
+                    // Reset to default
+                    albumArt.style.transform = '';
+                    delete albumArt.dataset.dragX;
+                    delete albumArt.dataset.dragY;
+                    lyricBubble.style.transform = 'translateX(-50%)';
+                    delete lyricBubble.dataset.dragX;
+                    delete lyricBubble.dataset.dragY;
+                    songTitleBox.style.transform = 'translateX(-50%)';
+                    delete songTitleBox.dataset.dragX;
+                    delete songTitleBox.dataset.dragY;
+                }
 
                 audioPlayer.onloadedmetadata = () => { if (startTime > 0 && startTime < audioPlayer.duration) audioPlayer.currentTime = startTime; audioPlayer.play(); };
-                parseLyrics(song.lyrics); navigateTo('player-view');
+                parseLyrics(song.lyrics); 
+                renderFullLyrics(); // Generate lines for modal
+                navigateTo('player-view');
             }
 
             function parseTime(t) { const p = t.split(':'); return (parseInt(p[0], 10) * 3600) + (parseInt(p[1], 10) * 60) + parseFloat(p[2]); }
             function parseLyrics(lyricText) { currentLyrics = []; const lines = lyricText.split('\n'), regex = /(\d{2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3})/; for (let i = 0; i < lines.length; i++) { const match = lines[i].trim().match(regex); if (match && i + 1 < lines.length) { currentLyrics.push({ startTime: parseTime(match[1]), endTime: parseTime(match[2]), text: lines[i + 1].trim() }); i++; } } }
             
+            function renderFullLyrics() {
+                const list = document.getElementById('full-lyrics-list');
+                list.innerHTML = '';
+                currentLyrics.forEach((line, index) => {
+                    const p = document.createElement('p');
+                    p.className = 'full-lyric-line';
+                    p.textContent = line.text;
+                    p.dataset.startTime = line.startTime;
+                    p.dataset.index = index;
+                    p.onclick = () => { document.getElementById('audio-player').currentTime = line.startTime; };
+                    list.appendChild(p);
+                });
+            }
+
             function updatePlayerState() {
                 const audio = document.getElementById('audio-player');
-                const line = currentLyrics.find(l => audio.currentTime >= l.startTime && audio.currentTime < l.endTime), text = line ? line.text : '...', el = document.getElementById('lyric-display');
-                if (el.textContent !== text) { el.textContent = text; }
+                const currentTime = audio.currentTime;
+                
+                // Active Lyric Logic
+                const activeIndex = currentLyrics.findIndex(l => currentTime >= l.startTime && currentTime < l.endTime);
+                
+                // Update Bubble
+                const bubbleEl = document.getElementById('lyric-display');
+                if (activeIndex !== -1) {
+                    bubbleEl.textContent = currentLyrics[activeIndex].text;
+                } else {
+                    // Optional: keep last text or show ...
+                    // bubbleEl.textContent = '...'; 
+                }
+
+                // Update Full Screen List
+                const listLines = document.querySelectorAll('.full-lyric-line');
+                listLines.forEach(l => l.classList.remove('active'));
+                if (activeIndex !== -1) {
+                    const activeLine = listLines[activeIndex];
+                    if (activeLine) {
+                        activeLine.classList.add('active');
+                        // Auto scroll
+                        activeLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+
                 const now = Date.now();
                 if (now - lastSaveTime > 3000) {
                     const currentSongId = parseInt(document.getElementById('player-view').dataset.currentSongId);
@@ -732,6 +895,11 @@
                 const playerSettingsMenu = document.getElementById('player-settings-menu');
                 const playbackSpeedSelect = document.getElementById('playback-speed');
                 const continuousPlayBtn = document.getElementById('toggle-continuous-play');
+                
+                // Full Lyrics Modal Controls
+                const fullLyricsBtn = document.getElementById('full-lyrics-btn');
+                const fullLyricsModal = document.getElementById('full-lyrics-modal');
+                const closeLyricsBtn = document.querySelector('.close-lyrics-btn');
 
                 playPauseBtn.addEventListener('click', () => {
                     if (audioPlayer.paused) { audioPlayer.play(); } else { audioPlayer.pause(); }
@@ -770,6 +938,14 @@
                     await db.settings.put({key: 'continuousPlay', value: isContinuousPlay});
                     updateContinuousPlayUI();
                 });
+
+                // Full Lyrics Listeners
+                fullLyricsBtn.addEventListener('click', () => {
+                    fullLyricsModal.classList.add('active');
+                });
+                closeLyricsBtn.addEventListener('click', () => {
+                    fullLyricsModal.classList.remove('active');
+                });
             }
             
             function updateContinuousPlayUI() {
@@ -777,10 +953,6 @@
                 btn.textContent = `连续播放: ${isContinuousPlay ? '开启 ✅' : '关闭'}`;
             }
 
-            document.getElementById('rotate-screen-btn').addEventListener('click', () => {
-                document.getElementById('player-view').classList.toggle('rotated');
-            });
-            
             function setupDraggableElement(element, container) {
                 let isDragging = false, startEventX, startEventY, startDragX, startDragY;
 
@@ -810,22 +982,19 @@
                     const deltaY = event.clientY - startEventY;
                     let newX, newY;
 
-                    if (container.classList.contains('rotated')) {
-                        newX = startDragX - deltaY;
-                        newY = startDragY + deltaX;
-                    } else {
-                        newX = startDragX + deltaX;
-                        newY = startDragY + deltaY;
-                    }
+                    newX = startDragX + deltaX;
+                    newY = startDragY + deltaY;
                     
                     let transformString = `translate3d(${newX}px, ${newY}px, 0)`;
-                    if (element.id === 'lyric-bubble') {
+                    
+                    // Center transform handling for bubble and title box
+                    if (element.id === 'lyric-bubble' || element.id === 'song-title-box') {
                          transformString = `translateX(-50%) ${transformString}`;
                     }
                     element.style.transform = transformString;
                 };
 
-                const dragEnd = (e) => {
+                const dragEnd = async (e) => {
                     if (isDragging) {
                         isDragging = false;
                         element.classList.remove('dragging');
@@ -834,18 +1003,28 @@
                         const deltaX = event.clientX - startEventX;
                         const deltaY = event.clientY - startEventY;
 
-                        if (container.classList.contains('rotated')) {
-                            element.dataset.dragX = startDragX - deltaY;
-                            element.dataset.dragY = startDragY + deltaX;
-                        } else {
-                            element.dataset.dragX = startDragX + deltaX;
-                            element.dataset.dragY = startDragY + deltaY;
-                        }
+                        const finalX = startDragX + deltaX;
+                        const finalY = startDragY + deltaY;
+                        
+                        element.dataset.dragX = finalX;
+                        element.dataset.dragY = finalY;
 
                         container.removeEventListener('mousemove', drag);
                         container.removeEventListener('touchmove', drag);
                         window.removeEventListener('mouseup', dragEnd);
                         window.removeEventListener('touchend', dragEnd);
+
+                        // Save all layout positions to DB
+                        const albumArt = document.getElementById('album-art');
+                        const lyricBubble = document.getElementById('lyric-bubble');
+                        const songTitleBox = document.getElementById('song-title-box');
+
+                        const layout = {
+                            art: { x: parseFloat(albumArt.dataset.dragX || 0), y: parseFloat(albumArt.dataset.dragY || 0) },
+                            lyric: { x: parseFloat(lyricBubble.dataset.dragX || 0), y: parseFloat(lyricBubble.dataset.dragY || 0) },
+                            title: { x: parseFloat(songTitleBox.dataset.dragX || 0), y: parseFloat(songTitleBox.dataset.dragY || 0) }
+                        };
+                        await db.settings.put({ key: 'playerLayout', value: layout });
                     }
                 };
 
@@ -1049,8 +1228,11 @@
                 const lyricBubble = document.querySelector('.lyric-bubble');
                 lyricBubble.id = 'lyric-bubble';
                 const albumArt = document.getElementById('album-art');
+                const songTitleBox = document.getElementById('song-title-box');
+
                 setupDraggableElement(lyricBubble, playerView);
                 setupDraggableElement(albumArt, playerView);
+                setupDraggableElement(songTitleBox, playerView);
                 
                 // Load Continuous Play Setting
                 const cpSetting = await db.settings.get('continuousPlay');
