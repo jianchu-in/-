@@ -1,26 +1,9 @@
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="https://chatbotcos.weixin.qq.com/chatbot/30-openaiassets_0fcbc917653b4f5350f3290e2343fdaf_469401762766962387.jpg">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <!-- PWA 配置 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="末の音乐">
-    
-    <!-- Apple 多尺寸图标 -->
-    <link rel="apple-touch-icon" sizes="180x180" href="https://www.yn12377.cn/jubao/upload/smjb/2025/12/05/875d9a164ed74fc5a9a764d8019ae95f.jpg">
-    <link rel="apple-touch-icon" sizes="152x152" href="https://www.yn12377.cn/jubao/upload/smjb/2025/12/05/875d9a164ed74fc5a9a764d8019ae95f.jpg">
-    <link rel="apple-touch-icon" sizes="120x120" href="https://www.yn12377.cn/jubao/upload/smjb/2025/12/05/875d9a164ed74fc5a9a764d8019ae95f.jpg">
-    
-    <!-- PWA 核心 -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
-    
-    <!-- Android 支持 -->
-    <meta name="mobile-web-app-capable" content="yes">
-    
-    <!-- 传统图标 -->
-    <link rel="icon" type="image/png" href="https://www.yn12377.cn/jubao/upload/smjb/2025/12/05/875d9a164ed74fc5a9a764d8019ae95f.jpg">
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>♡末の音乐♡播放器</title>
@@ -60,10 +43,26 @@
         .action-button { width: 100%; padding: 15px; background-color: #1DB954; color: white; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; font-size: var(--global-font-size); }
         
         /* Playlist & Folder Styles */
-        #playlist-container { list-style: none; padding: 0; margin: 0; display: none; }
-        .playlist-item { display: flex; align-items: center; padding: 10px; border-radius: 8px; transition: background-color 0.2s; } .playlist-item:hover { background-color: var(--bg-tertiary); }
+        #playlist-container { list-style: none; padding: 0; margin: 0; display: none; padding-bottom: 60px; /* Space for selection bar */ }
+        .playlist-item { display: flex; align-items: center; padding: 10px; border-radius: 8px; transition: background-color 0.2s; position: relative; } 
+        .playlist-item:hover { background-color: var(--bg-tertiary); }
         .playlist-item img { width: 50px; height: 50px; border-radius: 4px; margin-right: 15px; object-fit: cover; background-color: #333; }
         .playlist-item .song-info { flex-grow: 1; cursor: pointer; } .playlist-item .actions { display: flex; } .playlist-item .actions button { background: none; border: none; font-size: 20px; padding: 10px; color: var(--text-secondary); }
+        
+        /* Selection Mode Styles */
+        .playlist-item .select-checkbox { display: none; margin-right: 15px; transform: scale(1.2); cursor: pointer; }
+        .playlist-view.selection-mode .select-checkbox { display: block; }
+        .playlist-view.selection-mode .actions { display: none; }
+        .playlist-view.selection-mode .song-info { pointer-events: none; } /* Disable click to play in selection mode */
+        
+        #selection-bar {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background-color: var(--bg-tertiary); border-top: 1px solid var(--border-color);
+            padding: 15px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center;
+            transform: translateY(100%); transition: transform 0.3s; z-index: 100;
+        }
+        #selection-bar.active { transform: translateY(0); }
+        #selection-count { font-weight: bold; }
         
         .folder-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding-bottom: 20px; }
         .folder-item { background-color: var(--bg-tertiary); border-radius: 12px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; position: relative; user-select: none; -webkit-user-select: none; }
@@ -71,9 +70,15 @@
         .folder-icon { font-size: 40px; margin-bottom: 10px; }
         .folder-name { font-size: 14px; text-align: center; word-break: break-all; }
         .folder-count { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
-        .folder-delete-btn { position: absolute; top: 5px; right: 5px; background: none; border: none; color: #ff5555; font-size: 16px; padding: 5px; opacity: 0.7; z-index: 2; }
-        .folder-delete-btn:hover { opacity: 1; }
+        
+        /* Folder Action Buttons */
+        .folder-action-btn { position: absolute; top: 5px; background: none; border: none; font-size: 16px; padding: 5px; opacity: 0.7; z-index: 2; transition: opacity 0.2s; }
+        .folder-action-btn:hover { opacity: 1; transform: scale(1.1); }
+        .folder-delete-btn { right: 5px; color: #ff5555; }
+        .folder-export-btn { left: 5px; color: #4CAF50; }
+
         #create-folder-btn { margin-left: auto; background: none; border: none; font-size: 24px; color: var(--text-primary); }
+        #select-mode-btn { background: none; border: none; font-size: 18px; color: var(--text-primary); margin-left: 10px; display: none; } /* Hidden in folder view */
 
         #player-view { background-color: #000; background-size: cover; background-position: center; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; transition: transform 0.4s ease; }
         
@@ -209,9 +214,9 @@
 <body>
     <div id="desktop-view" class="view active"><div class="desktop-header"><div id="desktop-time">12:00</div><div id="desktop-date">1月1日</div></div><div class="desktop-top-right"><button id="announcement-btn">📢</button></div><div class="desktop-main"><div class="app-dock" id="app-dock"></div><div id="display-picture-container"></div></div></div>
     
-    <div id="settings-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="settings-view-title">播放设置</h1></div><div class="app-content"><div class="form-group"><label>歌曲标题</label><input type="text" id="song-title-input"></div><div class="form-group"><label>分类文件夹</label><select id="song-folder-select"><option value="">未分类</option></select></div><div class="form-group"><div style="display:flex;justify-content:space-between;align-items:center;"><label>字幕/歌词</label><button type="button" class="import-vtt-btn" data-target="lyric-input">📥 导入VTT</button></div><textarea id="lyric-input" rows="5" placeholder="格式:&#10;00:00:01.000 --> 00:00:04.000&#10;这是第一句歌词..."></textarea></div><div class="form-group"><label>音频来源</label><div class="source-switcher"><label><input type="radio" name="audioSource" value="file" checked> 上传文件</label><label><input type="radio" name="audioSource" value="url"> 使用URL</label></div><p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px; margin-bottom: 10px;">如果机型不支持wav，可上传url</p><div id="audio-file-group"><input type="file" id="audio-file-input" accept=".mp3,.wav,.m4a,audio/*"></div><div id="audio-url-group" class="hidden-input"><input type="text" id="audio-url-input" placeholder="输入 .mp3 或 .wav 链接"></div></div><div class="form-group"><label>封面图片 (可选)</label><div style="display:flex;align-items:center"><input type="file" id="image-file-input" accept="image/*" style="flex-grow:1"><img id="add-image-preview" class="image-preview" style="display:none"></div></div><button id="save-preset-btn" class="action-button">保存预设</button></div></div>
+    <div id="settings-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="settings-view-title">播放设置</h1></div><div class="app-content"><div class="form-group"><label>歌曲标题</label><input type="text" id="song-title-input"></div><div class="form-group"><label>分类文件夹</label><select id="song-folder-select"><option value="">未分类</option></select></div><div class="form-group"><div style="display:flex;justify-content:space-between;align-items:center;"><label>字幕/歌词</label><button type="button" class="import-vtt-btn" data-target="lyric-input">📥 导入VTT/LRC</button></div><textarea id="lyric-input" rows="5" placeholder="格式:&#10;00:00:01.000 --> 00:00:04.000&#10;这是第一句歌词..."></textarea></div><div class="form-group"><label>音频来源</label><div class="source-switcher"><label><input type="radio" name="audioSource" value="file" checked> 上传文件</label><label><input type="radio" name="audioSource" value="url"> 使用URL</label></div><p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px; margin-bottom: 10px;">如果机型不支持wav，可上传url</p><div id="audio-file-group"><input type="file" id="audio-file-input" accept=".mp3,.wav,.m4a,audio/*"></div><div id="audio-url-group" class="hidden-input"><input type="text" id="audio-url-input" placeholder="输入 .mp3 或 .wav 链接"></div></div><div class="form-group"><label>封面图片 (可选)</label><div style="display:flex;align-items:center"><input type="file" id="image-file-input" accept="image/*" style="flex-grow:1"><img id="add-image-preview" class="image-preview" style="display:none"></div></div><button id="save-preset-btn" class="action-button">保存预设</button></div></div>
     
-    <div id="edit-song-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="playlist-view">‹</button><h1 id="edit-view-title">编辑歌曲</h1></div><div class="app-content"><form id="edit-song-form"><div class="form-group"><label>歌曲标题</label><input type="text" id="edit-song-title-input"></div><div class="form-group"><label>分类文件夹</label><select id="edit-song-folder-select"><option value="">未分类</option></select></div><div class="form-group"><div style="display:flex;justify-content:space-between;align-items:center;"><label>字幕/歌词</label><button type="button" class="import-vtt-btn" data-target="edit-lyric-input">📥 导入VTT</button></div><textarea id="edit-lyric-input" rows="5"></textarea></div><div class="form-group"><label>更换音频文件 (可选)</label><input type="file" id="edit-audio-file-input" accept=".mp3,.wav,.m4a,audio/*"></div><div class="form-group"><label>更换封面图片 (可选)</label><div style="display:flex;align-items:center"><input type="file" id="edit-image-file-input" accept="image/*" style="flex-grow:1"><img id="edit-image-preview" class="image-preview"></div></div>
+    <div id="edit-song-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="playlist-view">‹</button><h1 id="edit-view-title">编辑歌曲</h1></div><div class="app-content"><form id="edit-song-form"><div class="form-group"><label>歌曲标题</label><input type="text" id="edit-song-title-input"></div><div class="form-group"><label>分类文件夹</label><select id="edit-song-folder-select"><option value="">未分类</option></select></div><div class="form-group"><div style="display:flex;justify-content:space-between;align-items:center;"><label>字幕/歌词</label><button type="button" class="import-vtt-btn" data-target="edit-lyric-input">📥 导入VTT/LRC</button></div><textarea id="edit-lyric-input" rows="5"></textarea></div><div class="form-group"><label>更换音频文件 (可选)</label><input type="file" id="edit-audio-file-input" accept=".mp3,.wav,.m4a,audio/*"></div><div class="form-group"><label>更换封面图片 (可选)</label><div style="display:flex;align-items:center"><input type="file" id="edit-image-file-input" accept="image/*" style="flex-grow:1"><img id="edit-image-preview" class="image-preview"></div></div>
     <div class="form-group"><label>界面布局</label><button type="button" id="reset-positions-btn" style="background-color: #607D8B; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px;">↺ 重置所有拖动位置</button></div>
     <button id="update-song-btn" class="action-button" type="submit">保存更改</button></form></div></div>
     
@@ -220,20 +225,26 @@
         <div class="app-header">
             <button class="back-btn" id="playlist-back-btn" data-target="desktop-view">‹</button>
             <h1 id="playlist-view-title">播放列表</h1>
+            <button id="select-mode-btn" title="多选导出">☑️</button>
             <button id="create-folder-btn" title="新建文件夹">+</button>
         </div>
         <div class="app-content">
             <div id="folders-grid" class="folder-grid"></div>
             <ul id="playlist-container"></ul>
         </div>
+        <!-- Selection Bottom Bar -->
+        <div id="selection-bar">
+            <span id="selection-count">已选: 0</span>
+            <button id="export-selected-btn" class="action-button" style="width: auto; margin: 0; padding: 8px 15px; font-size: 14px;">导出选中</button>
+        </div>
     </div>
 
     <div id="beautify-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="beautify-view-title">美化</h1></div><div class="app-content"><div class="beautify-section"><h2>主题模式</h2><div style="display:flex;align-items:center;gap:10px;"><span>夜间</span><label class="switch"><input type="checkbox" id="theme-switch"><span class="slider"></span></label><span>日间</span></div></div><div class="beautify-section"><h2>应用定制</h2><div id="app-customize-container"></div></div><div class="beautify-section"><h2>播放器界面</h2><div class="form-group"><label>全局背景</label><input type="file" id="player-bg-input" accept="image/*"></div><div class="form-group"><label>封面尺寸 (px)</label><div class="input-with-button"><input type="number" id="cover-width-input" placeholder="宽度"><input type="number" id="cover-height-input" placeholder="高度"><button id="save-cover-size-btn">保存</button></div></div></div><div class="beautify-section"><h2>桌面与字体</h2><div class="form-group"><label>全局背景</label><input type="file" id="bg-file-input" accept="image/*"></div><div class="form-group"><label>展示区图片</label><input type="file" id="dp-file-input" accept="image/*"></div><div class="form-group"><label>字体URL</label><div class="input-with-button"><input type="text" id="font-url-input" placeholder="https://.../font.woff"><button id="save-font-btn">保存</button></div></div><div class="form-group"><label>全局字体大小</label><div class="font-size-control"><input type="range" id="font-size-slider" min="12" max="22" step="1"><span id="font-size-value">16px</span></div></div></div></div></div>
-    <div id="data-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="data-view-title">数据管理</h1></div><div class="app-content"><p style="color: var(--text-secondary); line-height: 1.6; margin-top: 0;">这里是您的数据中心。您可以将所有歌曲、美化设置和个人配置导出为一个单一的 <code>.zip</code> 备份文件。 这个文件可以在任何设备上通过“导入”功能恢复您的整个播放器，实现无缝迁移和数据保护。</p><div class="form-group"><label>导出</label><button id="export-btn" class="action-button">导出全部数据</button></div><div class="form-group"><label>导入</label><button id="import-btn" class="action-button">导入备份文件 (覆盖)</button><input type="file" id="import-file-input" accept=".zip" style="display:none;"></div><div class="form-group"><label>支持</label><button id="sponsor-btn" style="background-color: #FF9800; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; font-size: var(--global-font-size);">💖 赞赏开发者</button></div></div></div>
+    <div id="data-view" class="view app-page"><div class="app-header"><button class="back-btn" data-target="desktop-view">‹</button><h1 id="data-view-title">数据管理</h1></div><div class="app-content"><p style="color: var(--text-secondary); line-height: 1.6; margin-top: 0;">这里是您的数据中心。您可以将所有歌曲、美化设置和个人配置导出为一个单一的 <code>.zip</code> 备份文件。 建议使用文件夹导出或多选导出以避免文件过大。</p><div class="form-group"><label>导出</label><button id="export-btn" class="action-button">导出全部数据</button></div><div class="form-group"><label>导入</label><button id="import-btn" class="action-button" style="background-color: #FF5722;">⚠️ 覆盖导入 (清空现有)</button><button id="import-merge-btn" class="action-button" style="margin-top: 10px; background-color: #2196F3;">📥 追加导入 (保留现有)</button><input type="file" id="import-file-input" accept=".zip" style="display:none;"></div><div class="form-group"><label>支持</label><button id="sponsor-btn" style="background-color: #FF9800; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; font-size: var(--global-font-size);">💖 赞赏开发者</button></div></div></div>
 
     <div id="player-view" class="view">
         <div class="player-top-bar">
-            <button class="back-btn" data-target="playlist-view">‹</button>
+            <button class="back-btn" id="player-back-btn" data-target="playlist-view">‹</button>
             <div class="right-controls">
                 <button id="set-song-bg-btn">🖼️</button>
                 <button id="toggle-color-picker-btn">🎨</button>
@@ -309,9 +320,9 @@
             <h2 style="text-align:center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-top:0;">公告</h2>
             <div class="announcement-body" style="font-size: 14px; line-height: 1.6; color: var(--text-primary);">
                 <p><strong>作者：末</strong> | 小红书 ID: 7504217376</p>
-                <p>最后一次更新已完成。从初版到现在，更新了十几次。</p>
+                <p>最后一次更新已完成。从初版至今，历经十余次迭代，感谢陪伴。</p>
                 <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 10px 0;">
-                <p><strong>关于源代码 (4.5元):</strong></p>
+                <p><strong>关于源代码 (4.5r):</strong></p>
                 <p>因不再更新，现出售源代码文件。链接永久有效。</p>
                 <ul style="padding-left: 20px; margin: 5px 0; color: var(--text-secondary);">
                     <li>✔️ 二改代码 / 加入新功能</li>
@@ -319,7 +330,7 @@
                     <li>✔️ 随意部署自己的链接</li>
                     <li>🚫 <strong>严禁二次直接售卖源代码</strong></li>
                 </ul>
-                <p>如果不会部署，可指路教程。网站初心是为乙抓妹提供便利，仅供娱乐交流，用户一切行为都与创作者无关。</p>
+                <p>若不会部署，可指路教程。网站初心是为乙抓妹提供便利，仅供娱乐交流。</p>
                 <p style="text-align: center; margin-top: 10px; font-weight: bold;">请支持正版乙抓 ♡</p>
             </div>
             <button id="close-modal-btn" style="margin-top: 15px;">关闭</button>
@@ -356,8 +367,10 @@
                 { id: 'data', name: '数据管理', icon: '💾', target: 'data-view' }
             ];
             
-            // Folder State
+            // Folder & Selection State
             let currentFolderId = null; 
+            let isSelectionMode = false;
+            let selectedSongIds = new Set();
 
             function revokeURLs(key) { if (tempObjectURLs[key]) { tempObjectURLs[key].forEach(url => URL.revokeObjectURL(url)); tempObjectURLs[key] = []; } }
             function navigateTo(viewId) { document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId)); }
@@ -492,14 +505,25 @@
                 const songContainer = document.getElementById('playlist-container'); 
                 const folderGrid = document.getElementById('folders-grid');
                 const createFolderBtn = document.getElementById('create-folder-btn');
+                const selectModeBtn = document.getElementById('select-mode-btn');
                 const backBtn = document.getElementById('playlist-back-btn');
                 const title = document.getElementById('playlist-view-title');
+                const playlistView = document.getElementById('playlist-view');
+                const selectionBar = document.getElementById('selection-bar');
+
+                // Reset Selection Mode
+                isSelectionMode = false;
+                selectedSongIds.clear();
+                playlistView.classList.remove('selection-mode');
+                selectionBar.classList.remove('active');
+                selectModeBtn.textContent = '☑️';
 
                 if (currentFolderId === null) {
                     // Folder View
                     songContainer.style.display = 'none';
                     folderGrid.style.display = 'grid';
                     createFolderBtn.style.display = 'block';
+                    selectModeBtn.style.display = 'none'; // Hide multi-select in folder view
                     backBtn.dataset.target = 'desktop-view'; // Back goes to desktop
                     title.textContent = '播放列表';
 
@@ -522,7 +546,8 @@
                         const div = document.createElement('div');
                         div.className = 'folder-item';
                         div.innerHTML = `
-                            <button class="folder-delete-btn" data-id="${folder.id}">×</button>
+                            <button class="folder-action-btn folder-delete-btn" data-id="${folder.id}" title="删除">×</button>
+                            <button class="folder-action-btn folder-export-btn" data-id="${folder.id}" title="导出此文件夹">📥</button>
                             <div class="folder-icon">📁</div>
                             <div class="folder-name">${folder.name}</div>
                             <div class="folder-count">${count} 首</div>
@@ -555,7 +580,7 @@
                         div.addEventListener('mouseleave', cancelPress);
 
                         div.onclick = (e) => {
-                            if(!e.target.classList.contains('folder-delete-btn') && !isLongPress) {
+                            if(!e.target.classList.contains('folder-action-btn') && !isLongPress) {
                                 currentFolderId = folder.id.toString(); 
                                 renderPlaylist();
                             }
@@ -577,11 +602,33 @@
                         }
                     });
 
+                    // Attach Folder Export Listeners
+                    document.querySelectorAll('.folder-export-btn').forEach(btn => {
+                        btn.onclick = async (e) => {
+                            e.stopPropagation();
+                            const folderId = parseInt(e.target.dataset.id);
+                            const folder = await db.folders.get(folderId);
+                            const songs = await db.songs.where('folderId').equals(folderId.toString()).toArray();
+                            
+                            if(songs.length === 0) { alert('文件夹为空，无需导出'); return; }
+                            
+                            btn.textContent = '...';
+                            try {
+                                await generateBackup(songs, [folder], [], `${folder.name}_backup`);
+                            } catch(err) {
+                                alert('导出失败: ' + err);
+                            } finally {
+                                btn.textContent = '📥';
+                            }
+                        }
+                    });
+
                 } else {
                     // Song List View
                     songContainer.style.display = 'block';
                     folderGrid.style.display = 'none';
                     createFolderBtn.style.display = 'none';
+                    selectModeBtn.style.display = 'block'; // Show multi-select button
                     
                     let songs = [];
                     if (currentFolderId === 'uncategorized') {
@@ -601,11 +648,96 @@
                         const li = document.createElement('li'); li.className = 'playlist-item'; 
                         let imageUrl = defaultCover; 
                         if (song.imageFile) { imageUrl = URL.createObjectURL(song.imageFile); tempObjectURLs.playlist.push(imageUrl); } 
-                        li.innerHTML = `<img src="${imageUrl}" alt="${song.title}"><div class="song-info" data-song-id="${song.id}"><span class="song-title">${song.title}</span></div><div class="actions"><button class="edit-song-btn" data-song-id="${song.id}">✏️</button><button class="delete-song-btn" data-song-id="${song.id}">🗑️</button></div>`; 
+                        li.innerHTML = `
+                            <input type="checkbox" class="select-checkbox" data-song-id="${song.id}">
+                            <img src="${imageUrl}" alt="${song.title}">
+                            <div class="song-info" data-song-id="${song.id}"><span class="song-title">${song.title}</span></div>
+                            <div class="actions">
+                                <button class="edit-song-btn" data-song-id="${song.id}">✏️</button>
+                                <button class="delete-song-btn" data-song-id="${song.id}">🗑️</button>
+                            </div>`; 
                         songContainer.appendChild(li); 
                     });
                 }
             }
+
+            // Toggle Selection Mode
+            const selectModeBtn = document.getElementById('select-mode-btn');
+            selectModeBtn.addEventListener('click', () => {
+                isSelectionMode = !isSelectionMode;
+                const playlistView = document.getElementById('playlist-view');
+                const selectionBar = document.getElementById('selection-bar');
+                
+                if (isSelectionMode) {
+                    playlistView.classList.add('selection-mode');
+                    selectionBar.classList.add('active');
+                    selectModeBtn.textContent = '❌';
+                } else {
+                    playlistView.classList.remove('selection-mode');
+                    selectionBar.classList.remove('active');
+                    selectModeBtn.textContent = '☑️';
+                    selectedSongIds.clear();
+                    document.querySelectorAll('.select-checkbox').forEach(cb => cb.checked = false);
+                    document.getElementById('selection-count').textContent = '已选: 0';
+                }
+            });
+
+            // Playlist Item Actions (Play, Select, Edit, Delete)
+            document.getElementById('playlist-container').addEventListener('click', e => {
+                // Checkbox Click
+                if (e.target.classList.contains('select-checkbox')) {
+                    const id = parseInt(e.target.dataset.songId);
+                    if (e.target.checked) selectedSongIds.add(id);
+                    else selectedSongIds.delete(id);
+                    document.getElementById('selection-count').textContent = `已选: ${selectedSongIds.size}`;
+                    return;
+                }
+
+                // If in selection mode, clicking the item row (except checkbox) also toggles
+                if (isSelectionMode && e.target.closest('.playlist-item')) {
+                     const checkbox = e.target.closest('.playlist-item').querySelector('.select-checkbox');
+                     checkbox.checked = !checkbox.checked;
+                     const id = parseInt(checkbox.dataset.songId);
+                     if (checkbox.checked) selectedSongIds.add(id);
+                     else selectedSongIds.delete(id);
+                     document.getElementById('selection-count').textContent = `已选: ${selectedSongIds.size}`;
+                     return;
+                }
+
+                if (isSelectionMode) return; // Stop processing Play/Edit/Delete if in select mode
+
+                const songInfo = e.target.closest('.song-info'), deleteBtn = e.target.closest('.delete-song-btn'), editBtn = e.target.closest('.edit-song-btn');
+                if (songInfo) startPlayback(parseInt(songInfo.dataset.songId));
+                if (deleteBtn) deleteSong(parseInt(deleteBtn.dataset.songId));
+                if (editBtn) openEditView(parseInt(editBtn.dataset.songId));
+            });
+
+            // Export Selected Songs
+            document.getElementById('export-selected-btn').addEventListener('click', async () => {
+                if (selectedSongIds.size === 0) return;
+                const btn = document.getElementById('export-selected-btn');
+                btn.textContent = '打包中...';
+                try {
+                    const songs = await db.songs.where('id').anyOf([...selectedSongIds]).toArray();
+                    // We also need to get associated folders if any
+                    const folderIds = new Set(songs.map(s => s.folderId).filter(id => id && id !== 'uncategorized'));
+                    let folders = [];
+                    if (folderIds.size > 0) {
+                        // Dexie anyOf takes array
+                        folders = await db.folders.where('id').anyOf([...folderIds].map(id => parseInt(id))).toArray();
+                    }
+                    
+                    await generateBackup(songs, folders, [], `selection_${songs.length}_songs`);
+                    
+                    // Exit selection mode
+                    selectModeBtn.click();
+                } catch (err) {
+                    alert('导出失败: ' + err);
+                } finally {
+                    btn.textContent = '导出选中';
+                }
+            });
+
 
             document.getElementById('create-folder-btn').addEventListener('click', async () => {
                 const name = prompt("请输入文件夹名称：");
@@ -630,13 +762,6 @@
                 });
             }
 
-            // Playlist Item Actions
-            document.getElementById('playlist-container').addEventListener('click', e => {
-                const songInfo = e.target.closest('.song-info'), deleteBtn = e.target.closest('.delete-song-btn'), editBtn = e.target.closest('.edit-song-btn');
-                if (songInfo) startPlayback(parseInt(songInfo.dataset.songId));
-                if (deleteBtn) deleteSong(parseInt(deleteBtn.dataset.songId));
-                if (editBtn) openEditView(parseInt(editBtn.dataset.songId));
-            });
             async function deleteSong(id) { if (confirm('确定要删除这首歌曲吗？')) { await db.songs.delete(id); renderPlaylist(); } }
             
             document.querySelectorAll('input[name="audioSource"]').forEach(radio => {
@@ -1144,34 +1269,38 @@
                 document.addEventListener('click', e => { if (!picker.contains(e.target) && e.target !== toggleBtn) picker.classList.remove('visible'); });
             }
             
-            document.getElementById('export-btn').addEventListener('click', async () => {
-                const exportBtn = document.getElementById('export-btn');
-                try {
-                    exportBtn.textContent = '正在打包...'; exportBtn.disabled = true;
-                    const zip = new JSZip();
-                    const songs = await db.songs.toArray();
-                    const settings = await db.settings.toArray();
-                    const folders = await db.folders.toArray(); // Export folders
-                    
-                    const filesFolder = zip.folder('files');
-                    const metadata = { songs: [], settings: [], folders: folders };
+            // --- Unified Export Logic ---
+            async function generateBackup(songs, folders, settings, filenamePrefix) {
+                const zip = new JSZip();
+                const filesFolder = zip.folder('files');
+                const metadata = { songs: [], settings: [], folders: folders || [] };
 
-                    for (const song of songs) {
-                        const songMeta = { ...song };
-                        if (song.audioType === 'file' || (!song.audioType && song.audioFile)) {
-                            const source = song.audioSource || song.audioFile;
-                            if(source) {
-                                const fileName = `${song.id}_audio.${source.name.split('.').pop()}`;
-                                filesFolder.file(fileName, source);
-                                songMeta.audioSource = fileName;
+                for (const song of songs) {
+                    const songMeta = { ...song };
+                    if (song.audioType === 'file' || (!song.audioType && song.audioFile)) {
+                        const source = song.audioSource || song.audioFile;
+                        if(source) {
+                            // Defensive coding for missing file name
+                            let fileExt = 'mp3';
+                            if (source.name) {
+                                fileExt = source.name.split('.').pop();
+                            } else if (source.type) {
+                                if(source.type.includes('wav')) fileExt = 'wav';
+                                else if(source.type.includes('m4a')) fileExt = 'm4a';
+                                else if(source.type.includes('ogg')) fileExt = 'ogg';
                             }
+                            const fileName = `${song.id}_audio.${fileExt}`;
+                            filesFolder.file(fileName, source);
+                            songMeta.audioSource = fileName;
                         }
-                        if (song.imageFile) { const fileExt = song.imageFile.type === 'image/gif' ? 'gif' : 'jpg'; const fileName = `${song.id}_cover.${fileExt}`; filesFolder.file(fileName, song.imageFile); songMeta.imageFile = fileName; }
-                        if (song.backgroundFile) { const fileName = `${song.id}_bg.jpg`; filesFolder.file(fileName, song.backgroundFile); songMeta.backgroundFile = fileName; }
-                        delete songMeta.audioFile;
-                        metadata.songs.push(songMeta);
                     }
+                    if (song.imageFile) { const fileExt = song.imageFile.type === 'image/gif' ? 'gif' : 'jpg'; const fileName = `${song.id}_cover.${fileExt}`; filesFolder.file(fileName, song.imageFile); songMeta.imageFile = fileName; }
+                    if (song.backgroundFile) { const fileName = `${song.id}_bg.jpg`; filesFolder.file(fileName, song.backgroundFile); songMeta.backgroundFile = fileName; }
+                    delete songMeta.audioFile;
+                    metadata.songs.push(songMeta);
+                }
 
+                if (settings) {
                     for (const setting of settings) {
                         const settingMeta = { ...setting };
                         if (setting.value instanceof Blob) {
@@ -1181,15 +1310,27 @@
                         }
                         metadata.settings.push(settingMeta);
                     }
+                }
 
-                    zip.file('metadata.json', JSON.stringify(metadata));
-                    const content = await zip.generateAsync({type:"blob"});
-                    const url = URL.createObjectURL(content);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `music-os-backup-${new Date().toISOString().slice(0, 10)}.zip`;
-                    a.click();
-                    URL.revokeObjectURL(url);
+                zip.file('metadata.json', JSON.stringify(metadata));
+                const content = await zip.generateAsync({type:"blob"});
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${filenamePrefix}-${new Date().toISOString().slice(0, 10)}.zip`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            // Export All Button (calls unified logic)
+            document.getElementById('export-btn').addEventListener('click', async () => {
+                const exportBtn = document.getElementById('export-btn');
+                try {
+                    exportBtn.textContent = '正在打包...'; exportBtn.disabled = true;
+                    const songs = await db.songs.toArray();
+                    const settings = await db.settings.toArray();
+                    const folders = await db.folders.toArray();
+                    await generateBackup(songs, folders, settings, 'music-os-full-backup');
                 } catch (e) {
                     alert('导出失败: ' + e);
                 } finally {
@@ -1197,15 +1338,39 @@
                 }
             });
 
+            // --- Unified Import Logic ---
             const importFileInput = document.getElementById('import-file-input');
-            document.getElementById('import-btn').addEventListener('click', () => importFileInput.click());
+            let importMode = 'overwrite'; // 'overwrite' or 'merge'
+
+            document.getElementById('import-btn').addEventListener('click', () => {
+                importMode = 'overwrite';
+                importFileInput.click();
+            });
+            
+            document.getElementById('import-merge-btn').addEventListener('click', () => {
+                importMode = 'merge';
+                importFileInput.click();
+            });
+
             importFileInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
-                const importBtn = document.getElementById('import-btn');
-                if (!file || !confirm('确定导入吗？这将覆盖所有现有数据！')) return;
+                if (!file) return;
+
+                const confirmMsg = importMode === 'overwrite' 
+                    ? '确定覆盖导入吗？这将清空所有现有数据！' 
+                    : '确定追加导入吗？这将把备份中的歌曲添加到现有库中。';
                 
+                if (!confirm(confirmMsg)) {
+                    e.target.value = '';
+                    return;
+                }
+                
+                const btnId = importMode === 'overwrite' ? 'import-btn' : 'import-merge-btn';
+                const importBtn = document.getElementById(btnId);
+                const originalText = importBtn.textContent;
+
                 try {
-                    importBtn.textContent = "正在导入..."; importBtn.disabled = true;
+                    importBtn.textContent = "处理中..."; importBtn.disabled = true;
                     const zip = await JSZip.loadAsync(file);
                     const metadataFile = zip.file('metadata.json');
                     if (!metadataFile) throw new Error('备份文件格式不正确 (缺少 metadata.json)');
@@ -1213,24 +1378,62 @@
                     
                     const filesFolder = zip.folder('files');
                     
+                    // Reconstruct Blobs
                     for (const songMeta of metadata.songs) {
                         if (songMeta.audioType === 'file' && songMeta.audioSource) songMeta.audioSource = await filesFolder.file(songMeta.audioSource).async('blob');
                         if (songMeta.imageFile) songMeta.imageFile = await filesFolder.file(songMeta.imageFile).async('blob');
                         if (songMeta.backgroundFile) songMeta.backgroundFile = await filesFolder.file(songMeta.backgroundFile).async('blob');
                     }
-                    for (const settingMeta of metadata.settings) {
-                        if (typeof settingMeta.value === 'string' && filesFolder.file(settingMeta.value)) {
-                            settingMeta.value = await filesFolder.file(settingMeta.value).async('blob');
+                    if(metadata.settings) {
+                        for (const settingMeta of metadata.settings) {
+                            if (typeof settingMeta.value === 'string' && filesFolder.file(settingMeta.value)) {
+                                settingMeta.value = await filesFolder.file(settingMeta.value).async('blob');
+                            }
                         }
                     }
 
                     await db.transaction('rw', db.songs, db.settings, db.folders, async () => {
-                        await db.songs.clear();
-                        await db.settings.clear();
-                        await db.folders.clear();
-                        await db.songs.bulkPut(metadata.songs);
-                        await db.settings.bulkPut(metadata.settings);
-                        if(metadata.folders) await db.folders.bulkPut(metadata.folders);
+                        if (importMode === 'overwrite') {
+                            await db.songs.clear();
+                            await db.settings.clear();
+                            await db.folders.clear();
+                            await db.songs.bulkPut(metadata.songs);
+                            if(metadata.settings) await db.settings.bulkPut(metadata.settings);
+                            if(metadata.folders) await db.folders.bulkPut(metadata.folders);
+                        } else {
+                            // Merge Mode
+                            const folderMapping = {}; // Old ID -> New ID
+
+                            // 1. Handle Folders
+                            if (metadata.folders) {
+                                for (const folder of metadata.folders) {
+                                    // Check if folder with same name exists
+                                    const existingFolder = await db.folders.where('name').equals(folder.name).first();
+                                    if (existingFolder) {
+                                        folderMapping[folder.id] = existingFolder.id.toString();
+                                    } else {
+                                        const newId = await db.folders.add({ name: folder.name });
+                                        folderMapping[folder.id] = newId.toString();
+                                    }
+                                }
+                            }
+
+                            // 2. Handle Songs
+                            for (const song of metadata.songs) {
+                                delete song.id; // Remove ID to let DB auto-increment and avoid collision
+                                
+                                // Remap Folder ID
+                                if (song.folderId && folderMapping[song.folderId]) {
+                                    song.folderId = folderMapping[song.folderId];
+                                } else {
+                                    song.folderId = ''; // If folder not found (or partial backup without folder), unset it
+                                }
+                                
+                                await db.songs.add(song);
+                            }
+                            
+                            // Note: We deliberately skip Settings merge to avoid messing up app config
+                        }
                     });
 
                     alert('导入成功！应用将重新加载。');
@@ -1238,7 +1441,8 @@
                 } catch (err) {
                     alert('导入失败！' + err);
                 } finally {
-                    importBtn.textContent = "导入备份文件 (覆盖)"; importBtn.disabled = false;
+                    importBtn.textContent = originalText; importBtn.disabled = false;
+                    e.target.value = '';
                 }
             });
             
